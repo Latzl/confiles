@@ -4,9 +4,6 @@
 [submodule "mods/fzf/home/.vim/pack/confiles/start/fzf.vim"]
 	path = mods/fzf/home/.vim/pack/confiles/start/fzf.vim
 	url = https://github.com/junegunn/fzf.vim.git
-[submodule "mods/tmux/home/.tmux/plugins/tmux-test"]
-	path = mods/tmux/home/.tmux/plugins/tmux-test
-	url = https://github.com/tmux-plugins/tmux-test.git
 [submodule "mods/tmux/home/.tmux/plugins/tpm"]
 	path = mods/tmux/home/.tmux/plugins/tpm
 	url = https://github.com/tmux-plugins/tpm.git
