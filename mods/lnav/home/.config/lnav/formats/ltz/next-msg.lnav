@@ -1,0 +1,14 @@
+# @synopsis: next-msg
+# @description: goto next massage
+
+;SELECT 
+    log_line AS next_line
+FROM 
+    all_logs
+WHERE 
+    log_line > log_top_line()
+LIMIT
+    1
+;
+
+:eval :goto ${next_line}

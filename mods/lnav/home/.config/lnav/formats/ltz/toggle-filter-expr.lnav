@@ -1,0 +1,21 @@
+# @synopsis: toggle-filter-expr <expr>
+# @description: set expr filter and toggle enablement of this filter
+
+:eval ;UPDATE lnav_view_filters
+SET pattern = "$__all__"
+WHERE language = 'sql'
+AND pattern <> "$__all__";
+
+:eval ;INSERT INTO lnav_view_filters (view_name, enabled, language, pattern)
+SELECT 'log', 0, 'sql', "$__all__"
+WHERE NOT EXISTS (
+    SELECT 1 FROM lnav_view_filters
+    WHERE view_name = 'log'
+    AND language = 'sql'
+);
+
+;UPDATE lnav_view_filters SET enabled = NOT enabled WHERE language = 'sql';
+
+;SELECT enabled AS enabled_state FROM lnav_view_filters WHERE language = 'sql';
+
+:eval :alt-msg $__all__ [${enabled_state}]

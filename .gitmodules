@@ -1,0 +1,27 @@
+[submodule "mods/fzf/home/.tmux/plugins/tmux-fzf"]
+	path = mods/fzf/home/.tmux/plugins/tmux-fzf
+	url = https://github.com/sainnhe/tmux-fzf.git
+[submodule "mods/fzf/home/.vim/pack/confiles/start/fzf.vim"]
+	path = mods/fzf/home/.vim/pack/confiles/start/fzf.vim
+	url = https://github.com/junegunn/fzf.vim.git
+[submodule "mods/tmux/home/.tmux/plugins/tmux-test"]
+	path = mods/tmux/home/.tmux/plugins/tmux-test
+	url = https://github.com/tmux-plugins/tmux-test.git
+[submodule "mods/tmux/home/.tmux/plugins/tpm"]
+	path = mods/tmux/home/.tmux/plugins/tpm
+	url = https://github.com/tmux-plugins/tpm.git
+[submodule "mods/tmux/home/.tmux/plugins/tmux-sensible"]
+	path = mods/tmux/home/.tmux/plugins/tmux-sensible
+	url = https://github.com/tmux-plugins/tmux-sensible.git
+[submodule "mods/tmux/home/.tmux/plugins/tmux-resurrect"]
+	path = mods/tmux/home/.tmux/plugins/tmux-resurrect
+	url = https://github.com/tmux-plugins/tmux-resurrect.git
+[submodule "mods/vim/home/.vim/pack/confiles/start/readline.vim"]
+	path = mods/vim/home/.vim/pack/confiles/start/readline.vim
+	url = https://github.com/ryvnf/readline.vim.git
+[submodule "mods/vim/home/.vim/pack/confiles/start/vim-easymotion"]
+	path = mods/vim/home/.vim/pack/confiles/start/vim-easymotion
+	url = https://github.com/easymotion/vim-easymotion.git
+[submodule "mods/vim/home/.vim/pack/confiles/start/vim-which-key"]
+	path = mods/vim/home/.vim/pack/confiles/start/vim-which-key
+	url = https://github.com/liuchengxu/vim-which-key.git

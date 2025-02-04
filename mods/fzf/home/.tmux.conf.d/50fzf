@@ -1,0 +1,3 @@
+TMUX_FZF_OPTIONS="-p -w 70% -h 70% -m"
+FZF_DEFAULT_OPTS_FILE="$HOME/.config/fzf/default_opt"
+set -ga @tpm_plugins ' sainnhe/tmux-fzf'

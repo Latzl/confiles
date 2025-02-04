@@ -1,0 +1,21 @@
+# @synopsis: toggle-show-field <filed>
+# @description: set expr filter to show or hide specific field
+
+;SELECT log_format AS target_format FROM all_logs WHERE log_line = log_msg_line();
+:eval ;SELECT $1 AS target_field_val
+FROM ${target_format}
+WHERE log_line = log_msg_line()
+;
+
+:eval ;SELECT
+    CASE
+        WHEN "${target_field_val}" = '<NULL>' THEN
+            ":$1 IS NULL"
+        ELSE
+            ":$1 = '${target_field_val}'"
+    END AS pattern_str
+;
+
+:echo ${pattern_str}
+
+|toggle-filter-expr $pattern_str

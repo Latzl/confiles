@@ -1,0 +1,10 @@
+_confiles_base_add_to_path() {
+    local dir2add="$1"
+	if [ -d "$dir2add" ] && [[ ":$PATH:" != *":$dir2add:"* ]]; then
+		PATH="$dir2add:$PATH"
+	fi
+}
+
+_confiles_base_add_to_path "$HOME/bin"
+_confiles_base_add_to_path "$HOME/.local/bin"
+_confiles_base_add_to_path "$HOME/.confiles/bin"

@@ -1,0 +1,6 @@
+--bind ctrl-k:kill-line
+--bind 'alt-P:toggle-preview'
+# raw item string
+--bind 'alt-I:change-preview-window(default:wrap)+change-preview(echo {})'
+# cat
+--bind 'alt-C:change-preview-window(default:wrap)+change-preview(cat {})'

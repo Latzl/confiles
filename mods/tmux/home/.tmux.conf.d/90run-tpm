@@ -1,0 +1,1 @@
+run-shell '[ -f ~/.tmux/plugins/tpm/tpm ] && ~/.tmux/plugins/tpm/tpm'

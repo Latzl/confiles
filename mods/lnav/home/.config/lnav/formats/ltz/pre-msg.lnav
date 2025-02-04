@@ -1,0 +1,14 @@
+# @synopsis: pre-msg
+# @description: goto previous massage
+
+;WITH lines_previous AS (
+    SELECT 
+        log_line 
+    FROM 
+        all_logs
+    WHERE 
+        log_line < log_top_line()
+)
+SELECT COALESCE(MAX(log_line), 0) AS pre_line FROM lines_previous;
+
+:eval :goto ${pre_line}

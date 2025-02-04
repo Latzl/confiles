@@ -1,0 +1,9 @@
+set -g @tpm_plugins 'tmux-plugins/tpm'
+set -ga @tpm_plugins ' tmux-plugins/tmux-sensible'
+
+set -ga @tpm_plugins ' tmux-plugins/tmux-resurrect'
+# Other examples, be careful not to miss the first space:
+# set -ga @tpm_plugins ' github_username/plugin_name'
+# set -ga @tpm_plugins ' github_username/plugin_name#branch'
+# set -ga @tpm_plugins ' git@github.com:user/plugin'
+# set -ga @tpm_plugins ' git@bitbucket.com:user/plugin'

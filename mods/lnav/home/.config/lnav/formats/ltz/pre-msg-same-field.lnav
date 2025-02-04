@@ -1,0 +1,31 @@
+# @synopsis: pre-msg-sam-field <field>
+# @description: goto pre massage with same field value
+
+;SELECT log_format AS target_format FROM all_logs WHERE log_line = log_msg_line();
+:eval ;WITH this_field AS(
+    SELECT 
+        $1 AS field
+    FROM 
+        ${target_format}
+    WHERE 
+        log_line = log_msg_line()
+    LIMIT 1
+)
+SELECT 
+    COALESCE(MAX(log_line), log_top_line()) AS pre_line
+FROM 
+    ${target_format}
+WHERE 
+    log_line < log_msg_line()
+AND
+    CASE
+        WHEN (SELECT field FROM this_field LIMIT 1) IS NULL THEN
+            $1 IS NULL
+        ELSE
+            $1 = (SELECT field FROM this_field LIMIT 1)
+    END
+LIMIT
+    1
+;
+
+:eval :goto ${pre_line}

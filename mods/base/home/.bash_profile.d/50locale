@@ -1,0 +1,26 @@
+# locale
+#ALL_LOCALE=$(locale -a)
+#_get_target_locale(){
+#	local arr_candidate=$@
+#	for lang in ${arr_candidate[@]}; do
+#		if echo $ALL_LOCALE | grep -q $lang ;then
+#			echo $lang
+#			return 0
+#		fi
+#	done
+#	return 1
+#}
+#
+#CANDIDATE_LOCALE_LANG=('zh_CN.UTF-8' 'zh_CN.utf8')
+#TARGET_LOCALE_LANG=$(_get_target_locale ${CANDIDATE_LOCALE_LANG[@]})
+#if [[ -n $TARGET_LOCALE_LANG ]]; then
+#    export LANG=$TARGET_LOCALE_LANG
+#fi
+#
+#CANDIDATE_LOCALE_LANGUAGE=('en_US.utf8')
+#TARGET_LOCALE_LANGUAGE=$(_get_target_locale ${CANDIDATE_LOCALE_LANGUAGE[@]})
+#if [[ -n $TARGET_LOCALE_LANGUAGE ]]; then
+#	export LANGUAGE=$TARGET_LOCALE_LANGUAGE
+#fi
+
+#export LC_ALL=en_US.utf8
