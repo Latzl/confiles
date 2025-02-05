@@ -6,12 +6,20 @@ if ! which rsync &>/dev/null; then
 fi
 
 get_usage() {
-	echo "Usage: $0 {status|apply|src_check} [--verbose|-v] [dst_dir]"
+	cat <<EOF
+Usage: $0 {ACTION} [--verbose|-v] [--help|-h] [dst_dir]
+ACTION:
+	status		show difference between src and dst
+	apply		sync files to dst
+	src_check	check if src contain duplicate files 
+
+The option dst_dir can be remote directory with format follow rsync's. If dst_dir not specified, ~ will be used as default.
+EOF
 }
 
 OPT_VERBOSE=false
 
-ARGS="$(getopt -l verbose -o v -- "$@")"
+ARGS="$(getopt -l verbose,help -o v,h -- "$@")"
 if [ $? -ne 0 ]; then
 	echo "$(get_usage)" >&2
 	exit 1
@@ -24,6 +32,10 @@ while true; do
 	-v | --verbose)
 		OPT_VERBOSE=true
 		shift
+		;;
+	-h | --help)
+		get_usage
+		exit 0
 		;;
 	--)
 		shift
@@ -67,14 +79,14 @@ else
 	IS_DST_REMOTE=false
 fi
 
-if $IS_DST_REMOTE; then
+if [ "$IS_DST_REMOTE" = true ]; then
 	DST_HOST="$(cut -d: -f1 <<<"$DST_DIR")"
 else
 	DST_HOST="$HOSTNAME"
 fi
 
 if $DST_DIR_PROVIDED; then
-	if $IS_DST_REMOTE; then
+	if [ "$IS_DST_REMOTE" = true ]; then
 		DST_UNAME=$(ssh $DST_HOST 'uname -sm')
 	else
 		DST_UNAME=$(uname -sm)

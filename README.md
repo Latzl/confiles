@@ -10,16 +10,7 @@ Install all mods: `cd mods/; ./cf-install-all.sh`, or install specify mod: `cd m
 
 ## Sync
 
-Using rsync to sync files.
-
-`confiles.sh {ACTION} [dst_dir]`
-
-ACTION:
-* status: show difference between src and dst
-* apply: sync files to dst
-* src_check: check if src contain duplicate files 
-
-The option dst_dir can be remote directory with format follow rsync's. If dst_dir not specified, `~` will be used as default.
+Use `confiles.sh` implemented by rsync to sync files. See `confiles.sh -h` for usage.
 
 # Binary files
 
