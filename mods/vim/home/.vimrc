@@ -44,7 +44,7 @@ autocmd FileType which_key setlocal bufhidden=wipe
 let g:which_key_sep = ':'
 
 " window
-nnoremap <leader>c :quit<CR>
+nnoremap <leader>c :close<CR>
 let g:which_key_map.c = 'close window'
 let g:which_key_map.w = { 'name': 'window' }
 nnoremap <leader>wm <C-W>_<C-W><Bar>

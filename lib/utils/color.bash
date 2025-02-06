@@ -16,8 +16,8 @@ _colorize() {
 }
 
 _to_red() {
-	echo "$(_colorize "$1" red)"
+	_colorize "$1" red
 }
 _to_green() {
-	echo "$(_colorize "$1" green)"
+	_colorize "$1" green
 }

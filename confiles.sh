@@ -5,6 +5,32 @@ if ! which rsync &>/dev/null; then
 	exit 1
 fi
 
+# fuctions
+
+colorize() {
+	local text="$1"
+	local color="$2"
+
+	case "$color" in
+	black) echo -e "\033[0;30m$text\033[0m" ;;
+	red) echo -e "\033[0;31m$text\033[0m" ;;
+	green) echo -e "\033[0;32m$text\033[0m" ;;
+	yellow) echo -e "\033[0;33m$text\033[0m" ;;
+	blue) echo -e "\033[0;34m$text\033[0m" ;;
+	magenta) echo -e "\033[0;35m$text\033[0m" ;;
+	cyan) echo -e "\033[0;36m$text\033[0m" ;;
+	white) echo -e "\033[0;37m$text\033[0m" ;;
+	*) echo "$text" ;;
+	esac
+}
+
+to_red() {
+	colorize "$1" red
+}
+to_green() {
+	colorize "$1" green
+}
+
 get_usage() {
 	cat <<EOF
 Usage: $0 {ACTION} [--verbose|-v] [--help|-h] [dst_dir]
@@ -19,11 +45,11 @@ EOF
 
 OPT_VERBOSE=false
 
-ARGS="$(getopt -l verbose,help -o v,h -- "$@")"
-if [ $? -ne 0 ]; then
-	echo "$(get_usage)" >&2
+ARGS="$(getopt -l verbose,help -o v,h -- "$@")" || {
+	to_red "getopt error" >&2
+	get_usage >&2
 	exit 1
-fi
+}
 
 eval set -- "$ARGS"
 
@@ -87,7 +113,7 @@ fi
 
 if $DST_DIR_PROVIDED; then
 	if [ "$IS_DST_REMOTE" = true ]; then
-		DST_UNAME=$(ssh $DST_HOST 'uname -sm')
+		DST_UNAME=$(ssh "$DST_HOST" 'uname -sm')
 	else
 		DST_UNAME=$(uname -sm)
 	fi
@@ -95,8 +121,8 @@ else
 	DST_UNAME=$(uname -sm)
 fi
 
-DST_OS="$(awk '{print $1}' <<<$DST_UNAME)"
-DST_ARCH="$(awk '{print $2}' <<<$DST_UNAME)"
+DST_OS="$(awk '{print $1}' <<<"$DST_UNAME")"
+DST_ARCH="$(awk '{print $2}' <<<"$DST_UNAME")"
 
 # print infos
 if $OPT_VERBOSE; then
@@ -105,32 +131,6 @@ if $OPT_VERBOSE; then
 	echo "DST_OS=$DST_OS"
 	echo "DST_ARCH=$DST_ARCH"
 fi
-
-# fuctions
-
-colorize() {
-	local text="$1"
-	local color="$2"
-
-	case "$color" in
-	black) echo -e "\033[0;30m$text\033[0m" ;;
-	red) echo -e "\033[0;31m$text\033[0m" ;;
-	green) echo -e "\033[0;32m$text\033[0m" ;;
-	yellow) echo -e "\033[0;33m$text\033[0m" ;;
-	blue) echo -e "\033[0;34m$text\033[0m" ;;
-	magenta) echo -e "\033[0;35m$text\033[0m" ;;
-	cyan) echo -e "\033[0;36m$text\033[0m" ;;
-	white) echo -e "\033[0;37m$text\033[0m" ;;
-	*) echo "$text" ;;
-	esac
-}
-
-to_red() {
-	echo "$(colorize "$1" red)"
-}
-to_green() {
-	echo "$(colorize "$1" green)"
-}
 
 get_mod_platform_dir() {
 	echo "$1/platforms/${DST_OS}/${DST_ARCH}"
@@ -143,7 +143,7 @@ cf_status() {
 	if ! [ -d "$src_dir" ]; then
 		return 1
 	fi
-	if ! [ -n "$dst_dir" ]; then
+	if [ -z "$dst_dir" ]; then
 		dst_dir="$HOME"
 	fi
 
@@ -157,7 +157,7 @@ cf_apply() {
 	if ! [ -d "$src_dir" ]; then
 		return 1
 	fi
-	if ! [ -n "$dst_dir" ]; then
+	if [ -z "$dst_dir" ]; then
 		dst_dir="$HOME"
 	fi
 
@@ -177,7 +177,8 @@ status_all() {
 		fi
 
 		# platform
-		local mod_platform_dir="$(get_mod_platform_dir "$mod_dir")"
+		local mod_platform_dir
+		mod_platform_dir="$(get_mod_platform_dir "$mod_dir")"
 		if [ -d "$mod_platform_dir" ]; then
 			content="$(cf_status "$mod_platform_dir" "$dst_dir")"
 			if [ -n "$content" ] || $OPT_VERBOSE; then
@@ -203,7 +204,8 @@ apply_all() {
 		fi
 
 		# platform
-		local mod_platform_dir="$(get_mod_platform_dir "$mod_dir")"
+		local mod_platform_dir
+		mod_platform_dir="$(get_mod_platform_dir "$mod_dir")"
 		if [ -d "$mod_platform_dir" ]; then
 			content="$(cf_apply "$mod_platform_dir" "$dst_dir")"
 			if [ -n "$content" ] || $OPT_VERBOSE; then
@@ -218,12 +220,11 @@ apply_all() {
 
 # check if files duplicate
 src_check_file_dup() {
-	local list="$(
-		cd "${SRC_MODS_DIR}"
-		find -L . -type f -printf "%P\n" | grep -P '^[^/]*/(Linux|home)'
-	)"
+	local list
+	list="$(cd "${SRC_MODS_DIR}" && find -L . -type f -printf "%P\n" | grep -P '^[^/]*/(Linux|home)')"
 
-	local duplicated="$(
+	local duplicated
+	duplicated="$(
 		sort -t'/' -k2 <<<"$list" |
 			awk '{
 			key = substr($0, index($0, "/") + 1)
@@ -243,7 +244,7 @@ src_check_file_dup() {
 		echo "$duplicated"
 		return 1
 	else
-		echo "$(to_green "No duplicated files")"
+		to_green "No duplicated files"
 		return 0
 	fi
 }
@@ -263,7 +264,8 @@ src_check)
 	src_check
 	;;
 *)
-	echo "$(get_usage)" >&2
+	to_red "Unknown action: $1" >&2
+	get_usage >&2
 	exit 1
 	;;
 esac

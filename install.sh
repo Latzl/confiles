@@ -20,7 +20,7 @@ EOF
 
 ARGS="$(getopt -l all,help,debug -o a,h -- "$@")"
 if [ $? -ne 0 ]; then
-	echo "$(get_usage)" >&2
+	get_usage >&2
 	exit 1
 fi
 
@@ -33,7 +33,7 @@ while true; do
 		shift
 		;;
 	-h | --help)
-		echo "$(get_usage)" >&2
+		get_usage >&2
 		exit 0
 		;;
 	--debug)
@@ -46,7 +46,7 @@ while true; do
 		;;
 	*)
 		echo "Unknown option: $1" >&2
-		echo "$(get_usage)" >&2
+		get_usage >&2
 		exit 1
 		;;
 	esac
@@ -67,10 +67,7 @@ modules=()
 if [ "$OPT_ALL" = false ]; then
 	modules=("$@")
 else
-	modules=($(
-		cd "${CF_PROJ_MODS_DIR}"
-		find * -maxdepth 0 -type d
-	))
+	readarray -t modules < <(find "${CF_PROJ_MODS_DIR}/"* -maxdepth 0 -type d -exec basename {} \;)
 fi
 
 if [ "$OPT_ALL" = false ] && [ ${#modules[@]} -eq 0 ]; then
@@ -84,7 +81,7 @@ if [ "$OPT_DEBUG" = true ]; then
 	echo "CF_DIR: ${CF_DIR}"
 	echo "CF_BIN_DIR: ${CF_BIN_DIR}"
 	echo "CF_MODS_DIR: ${CF_MODS_DIR}"
-	echo "modules: ${modules[@]}"
+	echo "modules: ${modules[*]}"
 fi
 
 # modules
@@ -92,7 +89,7 @@ for mod in "${modules[@]}"; do
 	proj_mod_dir="${CF_PROJ_MODS_DIR}/${mod}"
 	dst_mod_dir="${CF_MODS_DIR}/${mod}"
 	if ! [ -d "$proj_mod_dir" ]; then
-		echo "$(_to_red "Module ${mod} not found in ${CF_PROJ_MODS_DIR}")" >&2
+		_to_red "Module ${mod} not found in ${CF_PROJ_MODS_DIR}" >&2
 		continue
 	fi
 	if [ -d "$dst_mod_dir" ]; then
