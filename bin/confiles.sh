@@ -6,7 +6,8 @@ if ! which rsync &>/dev/null; then
 fi
 
 get_usage() {
-	cat <<EOF
+	local this_sh='confiles.sh'
+	cat <<_USAGE_EOF_
 Usage: $0 {ACTION} [--debug] [--help|-h] [[--mods|-m]|[--exclude-mods|-e]] [[--dst|-d]dst_dir]
 ACTION:
 	status		show difference between src and dst
@@ -18,11 +19,23 @@ OPTIONS:
 	--help|-h			print this help and exit
 	--mods|-m			specify mods to be done by action, mod seperated by comma, exclusive with --exclude-mods
 	--exclude-mods|-e	specify mods to be excluded by action, mod seperated by comma exclusive with --mods
-		if --mods or --exclude-mods not specified, all mods will be done by action
+		if --mods or --exclude-mods not specified, all mods will be specified by default
 	--dst|-d			specify dst directory, default is ~. No have to type --dst or -d explicitly, just type dst_dir can be ok.
 
 The option dst_dir can be remote directory with format follow rsync's. If dst_dir not specified, ~ will be used as default.
-EOF
+
+Examples:
+	# show difference between src and dst
+	$this_sh status
+	# sync files to ~/
+	$this_sh apply
+	# show status as dst dir is /home/user, with specify mods mod1 and mod2
+	$this_sh status --mods=mod1,mod2 --dst=/home/user
+	# show status as dst dir is remote host
+	$this_sh status user@remote:~
+	# sync files to remote host, exclude mod1 and mod2
+	$this_sh apply --exclude-mods=mod1,mod2 --dst=user@remote:~
+_USAGE_EOF_
 }
 
 OPT_DEBUG=false
