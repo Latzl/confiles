@@ -7,14 +7,14 @@ fi
 
 get_usage() {
 	cat <<EOF
-Usage: $0 {ACTION} [--verbose|-v] [--help|-h] [[--mods|-m]|[--exclude-mods|-e]] [[--dst|-d]dst_dir]
+Usage: $0 {ACTION} [--debug] [--help|-h] [[--mods|-m]|[--exclude-mods|-e]] [[--dst|-d]dst_dir]
 ACTION:
 	status		show difference between src and dst
 	apply		sync files to dst
 	src_check	check if src contain duplicate files 
 
 OPTIONS:
-	--verbose|-v		verbose mode
+	--debug				print debug info when running
 	--help|-h			print this help and exit
 	--mods|-m			specify mods to be done by action, mod seperated by comma, exclusive with --exclude-mods
 	--exclude-mods|-e	specify mods to be excluded by action, mod seperated by comma exclusive with --mods
@@ -25,9 +25,9 @@ The option dst_dir can be remote directory with format follow rsync's. If dst_di
 EOF
 }
 
-OPT_VERBOSE=false
+OPT_DEBUG=false
 
-ARGS="$(getopt -l verbose,help,mods:,exlude-mods:,dst: -o v,h,m:,e:,d: -- "$@")" || {
+ARGS="$(getopt -l debug,help,mods:,exlude-mods:,dst: -o h,m:,e:,d: -- "$@")" || {
 	get_usage >&2
 	exit 1
 }
@@ -67,8 +67,8 @@ handle_exclude_mods_option() {
 
 while true; do
 	case "$1" in
-	--verbose | -v)
-		OPT_VERBOSE=true
+	--debug)
+		OPT_DEBUG=true
 		shift
 		;;
 	--help | -h)
@@ -126,7 +126,7 @@ fi
 source "${CURR_DIR}/lib-confiles/destination.bash"
 
 # print infos
-if $OPT_VERBOSE; then
+if $OPT_DEBUG; then
 	echo "DST_DIR=$DST_DIR"
 	echo "DST_HOST=$DST_HOST"
 	echo "DST_OS=$DST_OS"
@@ -150,7 +150,7 @@ cf_status() {
 	local content
 	content=$(rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/")
 
-	if [ -n "$content" ] || $OPT_VERBOSE; then
+	if [ -n "$content" ] || $OPT_DEBUG; then
 		echo ">>> $src_dir -> $dst_dir"
 	fi
 	if [ -n "$content" ]; then
@@ -172,7 +172,7 @@ cf_apply() {
 	local content
 	content=$(rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/")
 
-	if [ -n "$content" ] || $OPT_VERBOSE; then
+	if [ -n "$content" ] || $OPT_DEBUG; then
 		echo ">>> $src_dir -> $dst_dir"
 	fi
 	if [ -n "$content" ]; then
@@ -250,7 +250,7 @@ status)
 	status_all "$DST_DIR"
 	;;
 apply)
-	apply_all "$2"
+	apply_all "$DST_DIR"
 	;;
 src_check)
 	src_check
