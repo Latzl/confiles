@@ -1,4 +1,4 @@
-_colorize() {
+colorize() {
 	local text="$1"
 	local color="$2"
 
@@ -15,9 +15,9 @@ _colorize() {
 	esac
 }
 
-_to_red() {
-	_colorize "$1" red
+to_red() {
+	colorize "$1" red
 }
-_to_green() {
-	_colorize "$1" green
+to_green() {
+	colorize "$1" green
 }
