@@ -9,13 +9,16 @@ OPT_ALL=false
 OPT_DEBUG=false
 
 get_usage() {
-	cat <<EOF
-Usage: $0 [OPTIONS] [modules...]
+	local this_sh='install.sh'
+	cat <<_USAGE_EOF_
+Usage: $this_sh [OPTIONS] [modules...]
 OPTIONS:
 	-a, --all	Install all modules
 	-h, --help	Show this help message and exit
 	--debug		Enable debug mode
-EOF
+
+module name is directory name in mods/, except that starts with '.'
+_USAGE_EOF_
 }
 
 ARGS="$(getopt -l all,help,debug -o a,h -- "$@")" || {

@@ -8,7 +8,7 @@ fi
 get_usage() {
 	local this_sh='confiles.sh'
 	cat <<_USAGE_EOF_
-Usage: $0 {ACTION} [--debug] [--help|-h] [[--mods|-m]|[--exclude-mods|-e]] [[--dst|-d]dst_dir]
+Usage: $this_sh {ACTION} [--debug] [--help|-h] [[--mods|-m]|[--exclude-mods|-e]] [[--dst|-d]dst_dir]
 ACTION:
 	status		show difference between src and dst
 	apply		sync files to dst
