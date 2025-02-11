@@ -13,6 +13,7 @@ ACTION:
 	status		show difference between src and dst
 	apply		sync files to dst
 	src_check	check if src contain duplicate files 
+	remove		remove confiles
 
 OPTIONS:
 	--debug				print debug info when running
@@ -35,12 +36,16 @@ Examples:
 	$this_sh status user@remote:~
 	# sync files to remote host, exclude mod1 and mod2
 	$this_sh apply --exclude-mods=mod1,mod2 --dst=user@remote:~
+	# remove confiles
+	$this_sh remove
+	# remove confiles with specify mods, with remote dst
+	$this_sh remove --mods=mod1,mod2 --dst=user@remote:~
 _USAGE_EOF_
 }
 
 OPT_DEBUG=false
 
-ARGS="$(getopt -l debug,help,mods:,exlude-mods:,dst: -o h,m:,e:,d: -- "$@")" || {
+ARGS="$(getopt -l debug,help,mods:,exclude-mods:,dst: -o h,m:,e:,d: -- "$@")" || {
 	get_usage >&2
 	exit 1
 }
@@ -142,6 +147,7 @@ source "${CURR_DIR}/lib-confiles/destination.bash"
 if $OPT_DEBUG; then
 	echo "DST_DIR=$DST_DIR"
 	echo "DST_HOST=$DST_HOST"
+	echo "DST_SSHPASS_CMD=$DST_SSHPASS_CMD"
 	echo "DST_OS=$DST_OS"
 	echo "DST_ARCH=$DST_ARCH"
 	echo "module_paths:"
@@ -161,7 +167,7 @@ cf_status() {
 	fi
 
 	local content
-	content=$(rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/")
+	content="$($DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/")"
 
 	if [ -n "$content" ] || $OPT_DEBUG; then
 		echo ">>> $src_dir -> $dst_dir"
@@ -183,7 +189,7 @@ cf_apply() {
 	fi
 
 	local content
-	content=$(rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/")
+	content="$($DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/")"
 
 	if [ -n "$content" ] || $OPT_DEBUG; then
 		echo ">>> $src_dir -> $dst_dir"
@@ -194,31 +200,29 @@ cf_apply() {
 }
 
 status_all() {
-	local dst_dir="$1"
 	local content=''
 	for mod_dir in "${module_paths[@]}"; do
-		cf_status "$mod_dir" "$dst_dir"
+		cf_status "$mod_dir" "$DST_DIR"
 
 		# platform
 		local mod_platform_dir
 		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
 		if [ -d "$mod_platform_dir" ]; then
-			cf_status "$mod_platform_dir" "$dst_dir"
+			cf_status "$mod_platform_dir" "$DST_DIR"
 		fi
 	done
 }
 
 apply_all() {
-	local dst_dir="$1"
 	local content=''
 	for mod_dir in "${module_paths[@]}"; do
-		cf_apply "$mod_dir" "$dst_dir"
+		cf_apply "$mod_dir" "$DST_DIR"
 
 		# platform
 		local mod_platform_dir
 		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
 		if [ -d "$mod_platform_dir" ]; then
-			cf_apply "$mod_platform_dir" "$dst_dir"
+			cf_apply "$mod_platform_dir" "$DST_DIR"
 		fi
 	done
 }
@@ -257,16 +261,60 @@ src_check() {
 	src_check_file_dup
 }
 
+CF_RM_CHACHE_PATH="${CF_CACHE_DIR}/remove_files.list"
+CF_DST_RM_CHACHE_PATH="${DST_DIR}/.confiles/.cache/remove_files.list"
+prepare_src_rm_files() {
+	local mod_dir="$1"
+	local src_dir="$mod_dir/home"
+	if ! [ -d "$src_dir" ]; then
+		return 1
+	fi
+	{
+		cd "$src_dir" && find -L . -type f -printf "%P\n"
+	} >>"$CF_RM_CHACHE_PATH"
+}
+prepare_rm_cache() {
+	[ -f "$CF_RM_CHACHE_PATH" ] && rm "$CF_RM_CHACHE_PATH"
+	[ ! -d "$(dirname "$CF_RM_CHACHE_PATH")" ] && mkdir -p "$(dirname "$CF_RM_CHACHE_PATH")"
+
+	for mod_dir in "${module_paths[@]}"; do
+		prepare_src_rm_files "$mod_dir"
+
+		# platform
+		local mod_platform_dir
+		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
+		if [ -d "$mod_platform_dir" ]; then
+			prepare_src_rm_files "$mod_platform_dir" "$DST_DIR"
+		fi
+	done
+
+	echo ">>> ${CF_RM_CHACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
+	local cmd
+	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
+	eval "$cmd"
+}
+do_remove_modules() {
+	# TODO
+	:
+}
+remove_all() {
+	prepare_rm_cache
+	do_remove_modules
+}
+
 # main
 case "$1" in
 status)
-	status_all "$DST_DIR"
+	status_all
 	;;
 apply)
-	apply_all "$DST_DIR"
+	apply_all
 	;;
 src_check)
 	src_check
+	;;
+remove)
+	remove_all
 	;;
 *)
 	to_red "Unknown action: $1" >&2
