@@ -1,0 +1,50 @@
+{
+    "$schema": "https://lnav.org/schemas/format-v1.schema.json",
+    "dmesg_pstore": {
+        "description": "Format file generated from regex101 entry -- https://regex101.com/r/2AaC89/1",
+        "regex": {
+            "std": {
+                "pattern": "^<(?<log_level>\\d*)>\\[\\s*(?<uptime>[\\d.]*)\\]\\[\\s*(?<cpu>\\d*)\\]\\s*\\[\\s*(?<src>.*?)\\]\\s(?<conbtent>.*)$"
+            }
+        },
+		"timestamp-field": "uptime",
+		"level-field": "log_level",
+        "level": {
+			"fatal": "$^(0|1){1}$",
+			"critical": "2",
+            "error": "3",
+			"warning": "4",
+			"stats": "5",
+			"info": "6",
+            "debug": "7"
+        },
+        "body-field": "content",
+        "value": {
+            "content": {
+                "kind": "string",
+                "identifier": true
+            },
+            "cpu": {
+                "kind": "string",
+                "identifier": true
+            },
+            "log_level": {
+                "kind": "string",
+                "identifier": true
+            },
+            "src": {
+                "kind": "string",
+                "identifier": true
+            },
+            "uptime": {
+                "kind": "string",
+                "identifier": true
+            }
+        },
+        "sample": [
+            {
+                "line": "<4>[    4.606072][ 7] [   T45] cputemp cputemp.6: hwmon_device_register() is deprecated. Please convert the driver to use hwmon_device_register_with_info().\n<6>[    5.722820][ 7] [  T359] arise info: To set par on drm fb.\n<6>[    5.794778][ 7] [    T8] r8169 0000:02:00.0 eno1: Link is Down\n<4>[    6.119651][ 7] [ T1403] [DISP] General Info:  cbDPPort_DeviceDetect: Device(0x8000) is not detected!\n<6>[  717.591283][ 7] [ T6169] mk_oops_init()\n<6>[  718.614032][ 7] [ T6169] start to make oops\n<1>[  718.614042][ 7] [ T6169] BUG: kernel NULL pointer dereference, address: 0000000000000000\n<1>[  718.614047][ 7] [ T6169] #PF: supervisor write access in kernel mode\n<1>[  718.614049][ 7] [ T6169] #PF: error_code(0x0002) - not-present page\n<6>[  718.614051][ 7] [ T6169] PGD 0 P4D 0\n<4>[  718.614054][ 7] [ T6169] Oops: 0002 [#1] SMP NOPTI"
+            }
+        ]
+    }
+}
