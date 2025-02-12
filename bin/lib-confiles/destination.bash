@@ -27,19 +27,18 @@ _set_sshpass_cmd() {
 	local ssh_conf_path="$HOME/.ssh/config"
 	if [ -f "$ssh_conf_path" ]; then
 		local identity_path
-		identity_path=$(awk -v host="$HOST" '
-		in_host_block=0
-		{
-			if ($1 == "Host" && index($0, host) != 0) {
-				in_host_block=1
-			} else if (in_host_block && $1 == "IdentityFile") {
-				print $2
-				exit
-			} else if ($1 == "Host") {
-				in_host_block=0
-			}
-		}
-		' "$ssh_conf_path")
+		identity_path=$(
+			perl -ne '
+			BEGIN { $host = shift;$in_block = 0; }
+			if (m/(?i)^Host\s+$host$/) { $in_block = 1; next; }
+			if ($in_block && m/(?i)^Host/) {$in_block = 0; }
+			if ($in_block && m/(?i)IdentityFile\s+(?<identity>.*)/) {
+			  print "$+{identity}\n";
+			  exit;
+			}' -- "$DST_HOST" <"$ssh_conf_path"
+		)
+		identity_path="${identity_path/#\~/$HOME}"
+		# echo "$identity_path"
 		if [ -n "$identity_path" ] && [ -f "$identity_path" ]; then
 			return 0
 		fi
