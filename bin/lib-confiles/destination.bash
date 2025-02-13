@@ -16,6 +16,13 @@ else
 	DST_HOST="localhost"
 fi
 
+# dst local relative dir
+if [ "$DST_HOST" = "localhost" ]; then
+	DST_LRDIR="$DST_DIR"
+else
+	DST_LRDIR="$(perl -pe 's/^[^:]*://' <<<"$DST_DIR")"
+fi
+
 DST_SSHPASS_CMD=''
 _set_sshpass_cmd() {
 	# localhost no need sshpass

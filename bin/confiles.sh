@@ -261,8 +261,10 @@ src_check() {
 	src_check_file_dup
 }
 
-CF_RM_CHACHE_PATH="${CF_CACHE_DIR}/remove_files.list"
-CF_DST_RM_CHACHE_PATH="${DST_DIR}/.confiles/.cache/remove_files.list"
+CF_RM_CHACHE_FILE="remove_files.list"
+CF_RM_CHACHE_RPATH="${CF_CACHE_RDIR}/${CF_RM_CHACHE_FILE}"
+CF_RM_CHACHE_PATH="${CF_CACHE_DIR}/${CF_RM_CHACHE_FILE}"
+CF_DST_RM_CHACHE_PATH="${DST_DIR}/${CF_RM_CHACHE_RPATH}"
 prepare_src_rm_files() {
 	local mod_dir="$1"
 	local src_dir="$mod_dir/home"
@@ -275,7 +277,7 @@ prepare_src_rm_files() {
 }
 prepare_rm_cache() {
 	[ -f "$CF_RM_CHACHE_PATH" ] && rm "$CF_RM_CHACHE_PATH"
-	[ ! -d "$(dirname "$CF_RM_CHACHE_PATH")" ] && mkdir -p "$(dirname "$CF_RM_CHACHE_PATH")"
+	[ ! -d "$CF_CACHE_DIR" ] && mkdir -p "$CF_CACHE_DIR"
 
 	for mod_dir in "${module_paths[@]}"; do
 		prepare_src_rm_files "$mod_dir"
@@ -289,13 +291,23 @@ prepare_rm_cache() {
 	done
 
 	echo ">>> ${CF_RM_CHACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
+	if [ "$DST_HOST" != "localhost" ]; then
+		local mkdir_rcmd="$DST_SSHPASS_CMD ssh $DST_HOST \"mkdir -p ${CF_CACHE_RDIR}\""
+		eval "$mkdir_rcmd"
+	fi
 	local cmd
 	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
 	eval "$cmd"
 }
 do_remove_modules() {
-	# TODO
-	:
+	local rm_cmd="for file in \$(cat ${DST_LRDIR}/${CF_RM_CHACHE_RPATH}); do path=${DST_LRDIR}/\${file}; [ -f \$path ] && rm -v \$path; done"
+	local cmd
+	if [ "$DST_HOST" = "localhost" ]; then
+		cmd="$rm_cmd"
+	else
+		cmd="$DST_SSHPASS_CMD ssh ${DST_HOST} '$rm_cmd'"
+	fi
+	eval "$cmd"
 }
 remove_all() {
 	prepare_rm_cache
