@@ -102,5 +102,4 @@ done
 
 # confiles.sh
 ln -svf "${CF_PROJ_DIR}/bin/confiles.sh" "${CF_BIN_DIR}/"
-ln -svf "${CF_PROJ_DIR}/bin/confiles-remove.sh" "${CF_BIN_DIR}/"
 ln -svf "${CF_PROJ_DIR}/bin/lib-confiles" "${CF_BIN_DIR}/"
