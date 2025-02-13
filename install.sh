@@ -55,14 +55,10 @@ while true; do
 done
 
 CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${CURR_DIR}/lib/confiles/proj.bash"
-source "${CF_PROJ_DIR}/lib/utils/color.bash"
-CF_PROJ_MODS_DIR="${CF_PROJ_DIR}/mods"
+CF_PROJ_MODS_DIR="${CURR_DIR}/mods"
 
 CF_DIR=${HOME}/.confiles
-CF_BIN_DIR=${CF_DIR}/bin
 CF_MODS_DIR=${CF_DIR}/mods
-mkdir -p "${CF_BIN_DIR}"
 mkdir -p "${CF_MODS_DIR}"
 
 modules=()
@@ -78,10 +74,8 @@ if [ "$OPT_ALL" = false ] && [ ${#modules[@]} -eq 0 ]; then
 fi
 
 if [ "$OPT_DEBUG" = true ]; then
-	echo "CF_PROJ_DIR: ${CF_PROJ_DIR}"
 	echo "CF_PROJ_MODS_DIR: ${CF_PROJ_MODS_DIR}"
 	echo "CF_DIR: ${CF_DIR}"
-	echo "CF_BIN_DIR: ${CF_BIN_DIR}"
 	echo "CF_MODS_DIR: ${CF_MODS_DIR}"
 	echo "modules: ${modules[*]}"
 fi
@@ -91,7 +85,7 @@ for mod in "${modules[@]}"; do
 	proj_mod_dir="${CF_PROJ_MODS_DIR}/${mod}"
 	dst_mod_dir="${CF_MODS_DIR}/${mod}"
 	if ! [ -d "$proj_mod_dir" ]; then
-		to_red "Module ${mod} not found in ${CF_PROJ_MODS_DIR}" >&2
+		echo "Module ${mod} not found in ${CF_PROJ_MODS_DIR}" >&2
 		continue
 	fi
 	if [ -d "$dst_mod_dir" ]; then
@@ -100,6 +94,4 @@ for mod in "${modules[@]}"; do
 	ln -sv "$proj_mod_dir" "$dst_mod_dir"
 done
 
-# confiles.sh
-ln -svf "${CF_PROJ_DIR}/bin/confiles.sh" "${CF_BIN_DIR}/"
-ln -svf "${CF_PROJ_DIR}/bin/lib-confiles" "${CF_BIN_DIR}/"
+[ -f "$CURR_DIR/install-origin.bash" ] && source "$CURR_DIR/install-origin.bash"
