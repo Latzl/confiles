@@ -147,7 +147,7 @@ source "${CURR_DIR}/lib-confiles/destination.bash"
 if $OPT_DEBUG; then
 	echo "DST_DIR=$DST_DIR"
 	echo "DST_HOST=$DST_HOST"
-	echo "DST_SSHPASS_CMD=$DST_SSHPASS_CMD"
+	# echo "DST_SSHPASS_CMD=$DST_SSHPASS_CMD"
 	echo "DST_OS=$DST_OS"
 	echo "DST_ARCH=$DST_ARCH"
 	echo "module_paths:"
@@ -155,6 +155,8 @@ if $OPT_DEBUG; then
 fi
 
 # fuctions
+
+# shellcheck disable=SC2317
 cf_status() {
 	local mod_dir="$1"
 	local src_dir="$mod_dir/home"
@@ -177,6 +179,7 @@ cf_status() {
 	fi
 }
 
+# shellcheck disable=SC2317
 cf_apply() {
 	local mod_dir="$1"
 	local src_dir="$mod_dir/home"
@@ -199,32 +202,29 @@ cf_apply() {
 	fi
 }
 
-status_all() {
-	local content=''
+# $0 <handler>
+# for handler need match signature: handler <src_mod_dir> [dst_dir]
+for_each_src_to_dst_mods_handle(){
+	local handler="$1"
 	for mod_dir in "${module_paths[@]}"; do
-		cf_status "$mod_dir" "$DST_DIR"
+		# base
+		"$handler" "$mod_dir" "$DST_DIR"
 
 		# platform
 		local mod_platform_dir
 		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
 		if [ -d "$mod_platform_dir" ]; then
-			cf_status "$mod_platform_dir" "$DST_DIR"
+			"$handler" "$mod_platform_dir" "$DST_DIR"
 		fi
 	done
 }
 
-apply_all() {
-	local content=''
-	for mod_dir in "${module_paths[@]}"; do
-		cf_apply "$mod_dir" "$DST_DIR"
+status_all() {
+	for_each_src_to_dst_mods_handle cf_status
+}
 
-		# platform
-		local mod_platform_dir
-		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
-		if [ -d "$mod_platform_dir" ]; then
-			cf_apply "$mod_platform_dir" "$DST_DIR"
-		fi
-	done
+apply_all() {
+	for_each_src_to_dst_mods_handle cf_apply
 }
 
 # check if files duplicate
@@ -265,6 +265,8 @@ CF_RM_CHACHE_FILE="remove_files.list"
 CF_RM_CHACHE_RPATH="${CF_CACHE_RDIR}/${CF_RM_CHACHE_FILE}"
 CF_RM_CHACHE_PATH="${CF_CACHE_DIR}/${CF_RM_CHACHE_FILE}"
 CF_DST_RM_CHACHE_PATH="${DST_DIR}/${CF_RM_CHACHE_RPATH}"
+
+# shellcheck disable=SC2317
 prepare_src_rm_files() {
 	local mod_dir="$1"
 	local src_dir="$mod_dir/home"
@@ -279,16 +281,7 @@ prepare_rm_cache() {
 	[ -f "$CF_RM_CHACHE_PATH" ] && rm "$CF_RM_CHACHE_PATH"
 	[ ! -d "$CF_CACHE_DIR" ] && mkdir -p "$CF_CACHE_DIR"
 
-	for mod_dir in "${module_paths[@]}"; do
-		prepare_src_rm_files "$mod_dir"
-
-		# platform
-		local mod_platform_dir
-		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
-		if [ -d "$mod_platform_dir" ]; then
-			prepare_src_rm_files "$mod_platform_dir" "$DST_DIR"
-		fi
-	done
+	for_each_src_to_dst_mods_handle prepare_src_rm_files
 
 	echo ">>> ${CF_RM_CHACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
 	if [ "$DST_HOST" != "localhost" ]; then
