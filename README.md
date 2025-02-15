@@ -12,6 +12,8 @@ Copy `mods/.template` to `mods/<module_name>`, or `~/.confiles/mods/`, as former
 
 For binary files, put them into `mods/<module_name>/platforms/<kernel>/<arch>/home/.confiles/bin`.
 
+It's not enough to just using `<kernel>/<arch>` to specify each platform. A bash script named `more-platforms.bash` can be supplied in `mods/<module_name>/platforms/` to specify more platforms by implementing function `more_platforms_check_dst_cmd()` and `more_platforms_get_src_mod_dir()`. See `mods/.template/platforms/more-platforms.bash`.
+
 # Usage
 
 ## Install modules

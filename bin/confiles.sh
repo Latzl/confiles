@@ -55,6 +55,7 @@ eval set -- "$ARGS"
 CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "${CURR_DIR}/lib-confiles/source.bash"
 source "${CURR_DIR}/lib-confiles/color.bash"
+source "${CURR_DIR}/lib-confiles/ssh.bash"
 
 module_paths=()
 DST_DIR=''
@@ -157,6 +158,22 @@ fi
 # fuctions
 
 # shellcheck disable=SC2317
+print_rsync_output() {
+	local header_printed=false
+	[ "$OPT_DEBUG" = "true" ] && {
+		echo "$*"
+		header_printed=true
+	}
+	while IFS= read -r line || [ -n "$line" ]; do
+		[ "$header_printed" = "false" ] && {
+			header_printed=true
+			echo "$*"
+		}
+		echo "$line"
+	done
+}
+
+# shellcheck disable=SC2317
 cf_status() {
 	local mod_dir="$1"
 	local src_dir="$mod_dir/home"
@@ -168,15 +185,10 @@ cf_status() {
 		dst_dir="$HOME"
 	fi
 
-	local content
-	content="$($DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/")"
+	$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/" |
+		print_rsync_output ">>> $src_dir -> $dst_dir"
 
-	if [ -n "$content" ] || $OPT_DEBUG; then
-		echo ">>> $src_dir -> $dst_dir"
-	fi
-	if [ -n "$content" ]; then
-		echo "$content"
-	fi
+	return "${PIPESTATUS[0]}"
 }
 
 # shellcheck disable=SC2317
@@ -191,31 +203,86 @@ cf_apply() {
 		dst_dir="$HOME"
 	fi
 
-	local content
-	content="$($DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/")"
+	$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/" |
+		print_rsync_output ">>> $src_dir -> $dst_dir"
 
-	if [ -n "$content" ] || $OPT_DEBUG; then
-		echo ">>> $src_dir -> $dst_dir"
-	fi
-	if [ -n "$content" ]; then
-		echo "$content"
-	fi
+	return "${PIPESTATUS[0]}"
+}
+
+# $0 <handler> <mod_platform_dir>
+handle_more_platforms() {
+	[ "$OPT_DEBUG" = "true" ] && echo "=== handle_more_platforms(): $1 $2"
+	local handler="$1"
+	local mod_platform_dir="$2"
+	local mod_more_platforms_script
+	mod_more_platforms_script="${mod_platform_dir}/more-platforms.bash"
+	[ -f "$mod_more_platforms_script" ] || {
+		return 0
+	}
+	[ "$OPT_DEBUG" = "true" ] && echo "with $mod_more_platforms_script"
+
+	# shellcheck disable=SC1090
+	source "$mod_more_platforms_script"
+
+	local check_dst_cmd
+	check_dst_cmd=$(more_platforms_check_dst_cmd) || {
+		local exit_code=$?
+		to_red "Exec more_platforms_check_dst_cmd failed[$?] in: $mod_more_platforms_script" >&2
+		return $exit_code
+	}
+	[ -z "$check_dst_cmd" ] && {
+		to_red "more_platforms_check_dst_cmd() returned empty" >&2
+		return 1
+	}
+	[ "$OPT_DEBUG" = "true" ] && echo "check_dst_cmd: $check_dst_cmd"
+
+	local check_dst_result
+	check_dst_result="$(do_cmd_on_dst "$check_dst_cmd")" || {
+		local exit_code=$?
+		to_red "Exec failed[$exit_code], with check_dst_cmd: $check_dst_cmd " >&2
+		return $exit_code
+	}
+	[ -z "$check_dst_result" ] && {
+		to_red "Result is empty, with check_dst_cmd: $check_dst_cmd" >&2
+		return 1
+	}
+	[ "$OPT_DEBUG" = "true" ] && echo "check_dst_result: $check_dst_result"
+
+	local more_platforms_src_dir
+	more_platforms_src_dir="$(more_platforms_get_src_mod_dir "$check_dst_result")" || {
+		local exit_code=$?
+		to_red "Exec more_platforms_get_src_mod_dir failed[$exit_code] in: $mod_more_platforms_script" >&2
+		return $exit_code
+	}
+	more_platforms_src_dir="${mod_platform_dir}/${more_platforms_src_dir}"
+	[ -d "$more_platforms_src_dir" ] || {
+		to_red "more_platforms_get_src_mod_dir returned invalid dir: $more_platforms_src_dir" >&2
+		return 1
+	}
+	[ "$OPT_DEBUG" = "true" ] && echo "more_platforms_src_dir: $more_platforms_src_dir"
+
+	"$handler" "$more_platforms_src_dir" "$DST_DIR"
 }
 
 # $0 <handler>
 # for handler need match signature: handler <src_mod_dir> [dst_dir]
-for_each_src_to_dst_mods_handle(){
+for_each_src_to_dst_mods_handle() {
 	local handler="$1"
 	for mod_dir in "${module_paths[@]}"; do
 		# base
 		"$handler" "$mod_dir" "$DST_DIR"
 
 		# platform
+		local mod_base_platform_dir
+		mod_base_platform_dir="${mod_dir}/$(cf_mod_base_platform_suffix)"
+		if [ -d "$mod_base_platform_dir" ]; then
+			"$handler" "$mod_base_platform_dir" "$DST_DIR"
+		fi
+
+		# more platforms
 		local mod_platform_dir
 		mod_platform_dir="${mod_dir}/$(cf_mod_platform_suffix)"
-		if [ -d "$mod_platform_dir" ]; then
-			"$handler" "$mod_platform_dir" "$DST_DIR"
-		fi
+		handle_more_platforms "$handler" "$mod_platform_dir"
 	done
 }
 
@@ -285,22 +352,17 @@ prepare_rm_cache() {
 
 	echo ">>> ${CF_RM_CHACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
 	if [ "$DST_HOST" != "localhost" ]; then
-		local mkdir_rcmd="$DST_SSHPASS_CMD ssh $DST_HOST \"mkdir -p ${CF_CACHE_RDIR}\""
-		eval "$mkdir_rcmd"
+		do_cmd_on_dst mkdir -p ${CF_CACHE_RDIR}
 	fi
 	local cmd
-	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
+	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=NONE ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
 	eval "$cmd"
 }
 do_remove_modules() {
+	[ "$OPT_DEBUG" = "true" ] && echo "=== do_remove_modules()"
 	local rm_cmd="for file in \$(cat ${DST_LRDIR}/${CF_RM_CHACHE_RPATH}); do path=${DST_LRDIR}/\${file}; [ -f \$path ] && rm -v \$path; done"
-	local cmd
-	if [ "$DST_HOST" = "localhost" ]; then
-		cmd="$rm_cmd"
-	else
-		cmd="$DST_SSHPASS_CMD ssh ${DST_HOST} '$rm_cmd'"
-	fi
-	eval "$cmd"
+	[ "$OPT_DEBUG" = "true" ] && echo "rm_cmd: $rm_cmd"
+	do_cmd_on_dst "$rm_cmd"
 }
 remove_all() {
 	prepare_rm_cache

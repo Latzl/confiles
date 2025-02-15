@@ -5,5 +5,8 @@ CF_CACHE_RDIR="${CF_RDIR}/.cache"
 CF_CACHE_DIR="${HOME}/${CF_CACHE_RDIR}"
 
 cf_mod_platform_suffix() {
+	echo "platforms"
+}
+cf_mod_base_platform_suffix() {
 	echo "platforms/${DST_OS}/${DST_ARCH}"
 }

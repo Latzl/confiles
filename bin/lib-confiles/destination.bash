@@ -1,6 +1,3 @@
-#!/bin/bash
-# get DST_HOST, DST_OS, DST_ARCH
-
 if [ -z "$DST_DIR" ]; then
 	echo "DST_DIR is not set" >&2
 	exit 1
@@ -46,7 +43,7 @@ _set_sshpass_cmd() {
 		)
 		identity_path="${identity_path/#\~/$HOME}"
 		# echo "$identity_path"
-		if [ -n "$identity_path" ] && [ -f "$identity_path" ]; then
+		if [ -f "$identity_path" ]; then
 			return 0
 		fi
 	fi
@@ -72,3 +69,16 @@ fi
 
 DST_OS="$(awk '{print $1}' <<<"$_CF_DESTINATION_UNAME")"
 DST_ARCH="$(awk '{print $2}' <<<"$_CF_DESTINATION_UNAME")"
+
+do_cmd_on_dst() {
+	local cmd
+	if [ "$DST_HOST" != "localhost" ]; then
+		cmd="$DST_SSHPASS_CMD ssh $DST_HOST $(escape_ssh_cmd_with_cf_flag "$*")"
+		eval "$cmd" | parse_ssh_confiles_result
+		return "${PIPESTATUS[0]}"
+	else
+		cmd="$*"
+		eval "$cmd"
+		return "$?"
+	fi
+}
