@@ -256,8 +256,7 @@ handle_more_platforms() {
 	}
 	more_platforms_src_dir="${mod_platform_dir}/${more_platforms_src_dir}"
 	[ -d "$more_platforms_src_dir" ] || {
-		to_red "more_platforms_get_src_mod_dir returned invalid dir: $more_platforms_src_dir" >&2
-		return 1
+		return 0
 	}
 	[ "$OPT_DEBUG" = "true" ] && echo "more_platforms_src_dir: $more_platforms_src_dir"
 
