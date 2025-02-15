@@ -44,7 +44,6 @@ perl -ne '
 		@fields = split;
 		print$fields[-1];
 		last;
-		exit 0;
 	}
 '
 EOF
