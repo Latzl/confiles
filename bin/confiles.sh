@@ -350,11 +350,8 @@ prepare_rm_cache() {
 	for_each_src_to_dst_mods_handle prepare_src_rm_files
 
 	echo ">>> ${CF_RM_CHACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
-	if [ "$DST_HOST" != "localhost" ]; then
-		do_cmd_on_dst mkdir -p ${CF_CACHE_RDIR}
-	fi
 	local cmd
-	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=NONE ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
+	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --rsync-path='mkdir -p ${CF_CACHE_RDIR} && rsync' --info=NONE ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
 	eval "$cmd"
 }
 do_remove_modules() {

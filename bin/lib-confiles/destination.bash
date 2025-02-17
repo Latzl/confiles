@@ -37,8 +37,8 @@ _set_sshpass_cmd() {
 			if (m/(?i)^Host\s+$host$/) { $in_block = 1; next; }
 			if ($in_block && m/(?i)^Host/) {$in_block = 0; }
 			if ($in_block && m/(?i)IdentityFile\s+(?<identity>.*)/) {
-			  print "$+{identity}\n";
-			  exit;
+				print "$+{identity}\n";
+				exit;
 			}' -- "$DST_HOST" <"$ssh_conf_path"
 		)
 		identity_path="${identity_path/#\~/$HOME}"
