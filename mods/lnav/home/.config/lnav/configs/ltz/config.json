@@ -1,29 +1,35 @@
 {
-    "ui": {
-        "movement":{
-            "mode": "top"
+  "ui": {
+    "movement": {
+      "mode": "top"
+    },
+    "keymap-defs": {
+      "default": {
+        "x09": {
+          "command": ":next-location"
         },
-        "keymap-defs": {
-            "default": {
-                "x71": {
-                    "command": ":toggle-view log"
-                },
-                "x0d": {
-                    "command": "|un-mtc"
-                },
-                "x5b": {
-                    "command": "|pre-msg"
-                },
-                "x5d": {
-                    "command": "|next-msg"
-                },
-                "x5a": {
-                    "command": "|toggle-filter-expr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
-                },
-                "x14": {
-                    "command": "|test"
-                }
-            }
+        "x0f": {
+          "command": ":prev-location"
+        },
+        "x71": {
+          "command": ":toggle-view log"
+        },
+        "x0d": {
+          "command": "|un-mtc"
+        },
+        "x5b": {
+          "command": "|pre-msg"
+        },
+        "x5d": {
+          "command": "|next-msg"
+        },
+        "x2a": {
+          "command": "|toggle-filter-expr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
+        },
+        "x14": {
+          "command": "|test"
         }
+      }
     }
+  }
 }

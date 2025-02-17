@@ -1,0 +1,43 @@
+{
+	"ui": {
+		"movement": {
+			"mode": "top"
+		},
+		"keymap-defs": {
+			"default": {
+				// C-o
+				"x09": {
+					"command": ":next-location"
+				},
+				// C-i
+				"x0f": {
+					"command": ":prev-location"
+				},
+				// q
+				"x71": {
+					"command": ":toggle-view log"
+				},
+				// C-m
+				"x0d": {
+					"command": "|un-mtc"
+				},
+				// [
+				"x5b": {
+					"command": "|pre-msg"
+				},
+				// ]
+				"x5d": {
+					"command": "|next-msg"
+				},
+				// F
+				"x2a": {
+					"command": "|toggle-filter-expr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
+				},
+				// C-t
+				"x14": {
+					"command": "|test"
+				}
+			}
+		}
+	}
+}
