@@ -65,3 +65,5 @@ nnoremap <leader>mh :Helptags<CR>
 let g:which_key_map.m.h = 'help tags'
 nnoremap <leader>mn :set number! relativenumber!<CR>
 let g:which_key_map.m.n = 'toggle num rnum'
+nnoremap <leader>mw :set wrap!<CR>
+let g:which_key_map.m.w = 'toggle wordwrap'
