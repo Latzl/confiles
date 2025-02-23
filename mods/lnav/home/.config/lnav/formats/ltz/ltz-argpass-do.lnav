@@ -1,0 +1,6 @@
+# @synopsis: ltz-argpass-do <command>
+# @description: do command passing args in table ltz_t_argpass
+
+;SELECT args FROM ltz_t_argpass;
+
+:eval $1 $args

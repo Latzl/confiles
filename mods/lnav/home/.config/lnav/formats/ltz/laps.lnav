@@ -1,0 +1,4 @@
+# @synopsis: laps <args>
+# @description: alias of ltz-argpass-set
+
+|ltz-argpass-set $__all__

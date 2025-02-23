@@ -1,0 +1,67 @@
+# @synopsis: ltz-step-field <what-flag: 1|0> <filed> [pattern] 
+# @description: goto next or prev location decide by field. If pattern is not given, use the value of field current is.
+
+;SELECT
+	CASE
+		WHEN json_valid($__all__) AND json_type($__all__) = 'array' THEN 1
+		ELSE 0
+	END AS is_json_array
+;
+;SELECT arg1, arg2 FROM (
+	SELECT
+		jget($__all__, '/0') AS arg1,
+		jget($__all__, '/1') AS arg2,
+		jget($__all__, '/2') AS arg3 
+	WHERE $is_json_array = 1
+UNION ALL
+	SELECT
+		$1 AS arg1,
+		$2 AS arg2,
+		$3 AS arg3
+	WHERE $is_json_array <> 1 OR $is_json_array IS NULL
+)
+
+;SELECT ifnull($arg1, raise_error('bad arg1 for flag')) AS flag;
+;SELECT ifnull($arg2, raise_error('bad arg2 for field')) AS field;
+:eval ;SELECT regexp_match(\'^$arg1 $arg2 (?<pattern>.*)\', \'$__all__\') AS pattern;
+;SELECT log_format FROM all_logs WHERE log_line = log_top_line();
+:eval ;SELECT $field AS curr_field_val FROM $log_format WHERE log_line = log_top_line()
+;SELECT 
+	CASE
+		WHEN $pattern IS NULL THEN $curr_field_val
+		ELSE $pattern
+	END AS pattern;
+;
+
+;SELECT
+	CASE $flag
+		WHEN 0 THEN '<'
+		WHEN 1 THEN '>'
+		ELSE raise_error('bad flag')
+	END AS to_cmp,
+	CASE $flag
+		WHEN 0 THEN 'DESC'
+		WHEN 1 THEN 'ASC'
+		ELSE raise_error('bad flag')
+	END AS to_order
+;
+
+:eval ;SELECT log_line AS target_line
+	FROM $log_format
+	WHERE log_line $to_cmp log_msg_line() AND
+		$field REGEXP \'(?i)$pattern\'
+	ORDER BY log_line $to_order
+	LIMIT 1
+;
+
+;SELECT ifnull($target_line, log_msg_line()) AS target_line;
+;SELECT
+	CASE $target_line
+		WHEN log_msg_line() THEN 'no match found'
+		ELSE $target_line
+	END AS msg
+;
+
+:eval :alt-msg $msg
+
+;UPDATE lnav_top_view SET selection = $target_line;

@@ -1,0 +1,19 @@
+# @synopsis: ltz-search-prepare-comment
+# @description: Prepare for search comment. Need to set argpass for pattern
+
+;SELECT args AS pattern FROM ltz_t_argpass;
+;SELECT
+	CASE
+		WHEN $pattern IS NULL THEN ''
+		ELSE $pattern
+	END AS pattern
+;
+;UPDATE ltz_t_search SET
+	search_table='all_logs',
+	col='log_comment',
+	pattern=$pattern,
+	match_type='regex'
+;
+
+|ltz-what-status-set-what ltz-search-table
+|ltz-what-status-set-args

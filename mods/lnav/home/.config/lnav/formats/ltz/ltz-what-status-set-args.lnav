@@ -1,0 +1,9 @@
+;SELECT
+	CASE
+		WHEN json_valid($1) AND json_type($1) = 'array' THEN $1
+		WHEN $1 = '' OR $1 IS NULL THEN json('[]')
+		ELSE raise_error('what args must be a json array')
+	END AS args_json
+;
+
+;UPDATE ltz_t_what_status SET args = $args_json;

@@ -1,0 +1,29 @@
+# @synopsis: ltz-search-prepare-field
+# @description: Prepare for search field. Need to set argpass for pattern
+
+;SELECT args AS args FROM ltz_t_argpass;
+;SELECT regexp_match('^(?<field>[^\s]+)\s*(?<pattern>[^\s]*)', $args) AS args_json;
+;SELECT jget($args_json, '/field') AS field;
+
+;SELECT ifnull($field, raise_error('field is not given'));
+;SELECT jget($args_json, '/pattern') AS pattern;
+
+;SELECT log_format FROM all_logs WHERE log_line = log_top_line();
+:eval ;SELECT $field AS curr_field_val FROM $log_format WHERE log_line = log_top_line()
+;SELECT 
+	CASE
+		WHEN $pattern IS NULL THEN $curr_field_val
+		WHEN $pattern = '' THEN $curr_field_val
+		ELSE $pattern
+	END AS pattern;
+;
+
+;UPDATE ltz_t_search SET
+	search_table=$log_format,
+	col=$field,
+	pattern=$pattern,
+	match_type='exact'
+;
+
+|ltz-what-status-set-what ltz-search-table
+|ltz-what-status-set-args

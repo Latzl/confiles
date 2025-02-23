@@ -5,14 +5,98 @@
 		},
 		"keymap-defs": {
 			"default": {
-				"x09": {
-					"command": ":next-location"
+				"x31": {
+					"command": "|ltz-search-prepare-comment"
 				},
-				"x0f": {
+				"x32": {
+					"command": "|ltz-search-prepare-tag"
+				},
+				"x33": {
+					"command": ":echo 3"
+				},
+				"x34": {
+					"command": ":echo 4"
+				},
+				"x35": {
+					"command": ":echo 5"
+				},
+				"x36": {
+					"command": ":echo 6"
+				},
+				"x37": {
+					"command": ":echo 7"
+				},
+				"x38": {
+					"command": ":echo 8"
+				},
+				"x39": {
+					"command": ":echo 9"
+				},
+				"x30": {
+					"command": "|ltz-search-prepare-field"
+				},
+				"x21": {
+					"command": ":echo !"
+				},
+				"x40": {
+					"command": ":echo @"
+				},
+				"x23": {
+					"command": ":echo #"
+				},
+				"x24": {
+					"command": ":echo $"
+				},
+				"x25": {
+					"command": ":echo %"
+				},
+				"x5e": {
+					"command": ":echo ^"
+				},
+				"x26": {
+					"command": ":echo &"
+				},
+				"x2a": {
+					"command": "|toggle-filter-expr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
+				},
+				"x28": {
 					"command": ":prev-location"
+				},
+				"x29": {
+					"command": ":next-location"
 				},
 				"x71": {
 					"command": ":toggle-view log"
+				},
+				"x4a": {
+					"command": ":echo J"
+				},
+				"x4b": {
+					"command": ":echo K"
+				},
+				"x07": {
+					"command": "|ltz-what-tf-do"
+				},
+				"x0a": {
+					"command": "|ltz-what-sf1-do"
+				},
+				"x0b": {
+					"command": "|ltz-what-sf0-do"
+				},
+				"x2e": {
+					"command": "|ltz-what-do"
+				},
+				"x3c": {
+					"command": ":echo <"
+				},
+				"x3e": {
+					"command": ":echo >"
+				},
+				"x48": {
+					"command": ":echo H"
+				},
+				"x4c": {
+					"command": ":echo L"
 				},
 				"x0d": {
 					"command": "|un-mtc"
@@ -22,9 +106,6 @@
 				},
 				"x5d": {
 					"command": "|next-msg"
-				},
-				"x2a": {
-					"command": "|toggle-filter-expr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
 				},
 				"x14": {
 					"command": "|test"

@@ -1,0 +1,4 @@
+# @synopsis: lapd <command>
+# @description: alias of ltz-argpass-do
+
+|ltz-argpass-do $__all__

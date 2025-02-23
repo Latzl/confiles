@@ -1,0 +1,80 @@
+# @synopsis: ltz-search-table <what-flag: 1|0>
+# @description: goto next or prev location if mark matched by pattern.
+
+;SELECT
+	CASE
+		WHEN json_valid($__all__) AND json_type($__all__) = 'array' THEN 1
+		ELSE 0
+	END AS is_json_array
+;
+;SELECT * FROM (
+	SELECT
+		jget($__all__, '/0') AS arg1
+	WHERE $is_json_array = 1
+UNION ALL
+	SELECT
+		$1 AS arg1
+	WHERE $is_json_array <> 1 OR $is_json_array IS NULL
+)
+;SELECT $arg1 AS flag;
+
+;SELECT CASE $flag
+	WHEN 0 THEN 'prev'
+	WHEN 1 THEN 'next'
+	ELSE raise_error('bad arg1 for direction')
+END AS direction;
+;UPDATE ltz_t_search SET direction = $direction;
+
+;SELECT search_table, col, direction, pattern, match_type FROM ltz_t_search;
+
+;SELECT ifnull($search_table, raise_error('search_table null')) AS dst_table;
+;SELECT ifnull($col, raise_error('col null')) AS col;
+;SELECT ifnull($pattern, '') AS pattern;
+
+;SELECT CASE
+	WHEN $match_type = 'exact' THEN 1
+	ELSE 0
+	END AS exact_match;
+;
+
+;SELECT
+	CASE $exact_match
+		WHEN 1 THEN printf('(?i)^%s$', $pattern)
+		ELSE printf('(?i)%s', $pattern)
+	END AS pattern
+;
+
+;SELECT
+	CASE $direction
+		WHEN 'prev' THEN '<'
+		WHEN 'next' THEN '>'
+		ELSE raise_error('bad direction')
+	END AS to_cmp,
+	CASE $direction
+		WHEN 'prev' THEN 'DESC'
+		WHEN 'next' THEN 'ASC'
+		ELSE raise_error('bad direction')
+	END AS to_order
+;
+
+
+:eval ;SELECT log_line AS target_line
+	FROM $dst_table
+	WHERE log_line $to_cmp log_top_line() AND
+		$col IS NOT NULL AND
+		$col REGEXP \'$pattern\'
+	ORDER BY log_line $to_order
+	LIMIT 1
+;
+
+;SELECT ifnull($target_line, log_top_line()) AS target_line;
+;SELECT
+	CASE $target_line
+		WHEN log_top_line() THEN 'no match found'
+		ELSE $target_line
+	END AS msg
+;
+
+:eval :alt-msg $msg
+
+;UPDATE lnav_top_view SET selection = $target_line;

@@ -1,0 +1,1 @@
+;UPDATE ltz_t_what_status SET what = $__all__;

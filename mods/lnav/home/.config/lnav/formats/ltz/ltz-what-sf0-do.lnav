@@ -1,0 +1,5 @@
+# @synopsis: ltz-what-sf0-do
+# @description: set flag to 0 and do what
+
+;UPDATE ltz_t_what_status SET flag = 0;
+|ltz-what-do

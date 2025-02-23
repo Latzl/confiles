@@ -1,0 +1,1 @@
+;UPDATE ltz_t_argpass SET args = $__all__;

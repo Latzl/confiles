@@ -1,0 +1,12 @@
+;SELECT what, flag, args FROM ltz_t_what_status;
+
+;SELECT
+	CASE
+		WHEN json_valid($args) AND json_type($args) = 'array' THEN $args
+		WHEN $args = '' OR $args IS NULL THEN json('[]')
+		ELSE raise_error('what args must be a json array')
+	END AS args_json
+;
+;SELECT json_concat($flag, json($args_json)) AS args_json;
+
+|$what $args_json
