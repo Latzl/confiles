@@ -57,7 +57,7 @@
 					"command": ":echo &"
 				},
 				"x2a": {
-					"command": "|toggle-filter-expr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
+					"command": "|ltz-toggle-filterexpr :log_mark > 0 OR :log_tags IS NOT NULL OR :log_comment IS NOT NULL"
 				},
 				"x28": {
 					"command": ":prev-location"
