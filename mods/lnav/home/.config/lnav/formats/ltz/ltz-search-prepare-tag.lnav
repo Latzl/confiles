@@ -1,7 +1,6 @@
 # @synopsis: ltz-search-prepare-tag
 # @description: Prepare for search tag. Need to set argpass for pattern
 
-
 ;SELECT args AS pattern FROM ltz_t_argpass;
 ;SELECT
 	CASE
@@ -18,3 +17,5 @@
 
 |ltz-what-status-set-what ltz-search-table
 |ltz-what-status-set-args
+
+|ltz-search-table-altmsg

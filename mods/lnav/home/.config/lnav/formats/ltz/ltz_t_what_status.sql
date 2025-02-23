@@ -1,6 +1,6 @@
 CREATE TABLE IF NOT EXISTS ltz_t_what_status (
 	what TEXT PRIMARY KEY,
-	flag INTERGER,
+	flag INTERGER DEFAULT 1,
 	args TEXT
 );
 INSERT INTO ltz_t_what_status (what) VALUES ('');

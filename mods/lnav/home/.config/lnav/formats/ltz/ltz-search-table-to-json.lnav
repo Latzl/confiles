@@ -1,0 +1,6 @@
+
+;SELECT search_table, col, direction, match_type, pattern FROM ltz_t_search;
+
+;SELECT json_object("search_table", $search_table, "col", $col, "direction", $direction, "match_type", $match_type, "pattern", $pattern) AS json;
+
+;UPDATE ltz_t_json_tmp SET json = $json;

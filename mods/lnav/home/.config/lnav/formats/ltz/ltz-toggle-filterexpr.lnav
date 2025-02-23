@@ -1,4 +1,4 @@
-# @synopsis: toggle-filter-expr <expr>
+# @synopsis: ltz-toggle-filterexpr <expr>
 # @description: set expr filter and toggle enablement of this filter
 
 :eval ;UPDATE lnav_view_filters

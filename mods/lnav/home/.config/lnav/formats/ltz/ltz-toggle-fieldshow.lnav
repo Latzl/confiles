@@ -1,4 +1,4 @@
-# @synopsis: toggle-show-field <filed>
+# @synopsis: ltz-toggle-fieldshow <filed>
 # @description: set expr filter to show or hide specific field
 
 ;SELECT log_format AS target_format FROM all_logs WHERE log_line = log_msg_line();

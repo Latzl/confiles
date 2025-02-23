@@ -1,0 +1,4 @@
+
+|ltz-search-table-to-json
+;SELECT json FROM ltz_t_json_tmp;
+:eval :alt-msg ${json}
