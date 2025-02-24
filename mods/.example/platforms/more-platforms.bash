@@ -15,16 +15,29 @@ more_platforms_get_src_mod_dir() {
 		echo "DST_OS or DST_ARCH is not set" >&2
 		return 1
 	fi
+	if [ -z "$mod_platform_dir" ]; then
+		echo "mod_platform_dir is not set" >&2
+		return 1
+	fi
 	local dst_glibc_ver="$1"
 	if [ -z "$dst_glibc_ver" ]; then
 		echo "dst_glibc_ver is not set" >&2
 		return 1
 	fi
+	local target_glibc_ver=0
+	{
+		while IFS= read -r line; do
+			if [ "$(echo "$line > $dst_glibc_ver" | bc -l)" = 1 ]; then
+				break;
+			fi
+			target_glibc_ver="$line"
+		done < <(find "${mod_platform_dir}/${DST_OS}/${DST_ARCH}/glibc/" -mindepth 1 -maxdepth 1 -type d -print0 | xargs -0 -I {} basename {} | sort -z)
+	}
 	if ! _more_platform_is_ver_valid "$dst_glibc_ver"; then
 		echo "invalid glibc version: $1" >&2
 		return 1
 	fi
-	local src_mod_dir="${DST_OS}/${DST_ARCH}/glibc/${dst_glibc_ver}"
+	local src_mod_dir="${DST_OS}/${DST_ARCH}/glibc/${target_glibc_ver}"
 	echo "$src_mod_dir"
 }
 
