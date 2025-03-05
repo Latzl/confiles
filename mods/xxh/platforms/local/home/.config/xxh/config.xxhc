@@ -1,0 +1,3 @@
+hosts:
+  ".*":                     # Regex for all hosts
+    +s: bash
