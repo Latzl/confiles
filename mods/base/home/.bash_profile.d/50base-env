@@ -1,0 +1,1 @@
+export CONFILES_BIN_DIR=${HOME}/.confiles/bin
