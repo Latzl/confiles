@@ -1,0 +1,38 @@
+_ins-exe-ret-to-cmdline_get_exe_path() {
+    exe_dir="$HOME/.confiles/bin"
+    exe=$(find "$exe_dir" -type f -executable -printf "%P\n" | fzf)
+    exe_path="$exe_dir/$exe"
+    echo "$exe_path"
+}
+
+ins-exe-ret-to-cmdline() {
+    exe_path=$(_ins-exe-ret-to-cmdline_get_exe_path)
+    if ! [ -f "$exe_path" ]; then
+        echo "$exe_path is not found or is not an executable file" >&2
+    else
+        ret=$($exe_path)
+    fi
+
+    READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$ret${READLINE_LINE:$READLINE_POINT}"
+    READLINE_POINT=$((READLINE_POINT + ${#ret}))
+}
+
+ins-exe-ret-to-cmdline-with-args() {
+    exe_path=$(_ins-exe-ret-to-cmdline_get_exe_path)
+    if ! [ -f "$exe_path" ]; then
+        echo "$exe_path is not found or is not an executable file" >&2
+    else
+        tmp_file=$(mktemp)
+        tmux display-popup -E "echo \"input args:\" && read input && echo \$input > $tmp_file"
+        args=$(cat "$tmp_file")
+        rm -f "$tmp_file"
+
+        ret=$($exe_path "$args")
+    fi
+
+    READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$ret${READLINE_LINE:$READLINE_POINT}"
+    READLINE_POINT=$((READLINE_POINT + ${#ret}))
+}
+
+bind -x '"\C-xi": ins-exe-ret-to-cmdline'
+bind -x '"\C-xI": ins-exe-ret-to-cmdline-with-args'
