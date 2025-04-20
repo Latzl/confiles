@@ -22,3 +22,6 @@
 [submodule "mods/vim/home/.vim/pack/confiles/start/vim-which-key"]
 	path = mods/vim/home/.vim/pack/confiles/start/vim-which-key
 	url = https://github.com/liuchengxu/vim-which-key.git
+[submodule "mods/tmux/home/.tmux/plugins/tmux-easy-motion"]
+	path = mods/tmux/home/.tmux/plugins/tmux-easy-motion
+	url = https://github.com/IngoMeyer441/tmux-easy-motion.git

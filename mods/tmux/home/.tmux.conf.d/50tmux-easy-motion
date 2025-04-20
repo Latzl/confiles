@@ -1,0 +1,2 @@
+set -g @easy-motion-prefix "Space"
+set -ga @tpm_plugins ' IngoMeyer441/tmux-easy-motion'
