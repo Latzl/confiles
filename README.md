@@ -8,7 +8,7 @@ Module name is directory name in `mods/`, except that starts with `.`.
 
 ## make custom module
 
-Copy `mods/.template` to `mods/<module_name>`, or `~/.confiles/mods/`, as former need tu run `install.sh` to install to `~/.confiles/mods/`. Put your confiles into `mods/<module_name>/home/`.
+Copy `mods/.template` to `mods/<module_name>`, or `~/.confiles/mods/`, while former needing running `install.sh` to install to `~/.confiles/mods/`. Put your confiles into `mods/<module_name>/home/`.
 
 For binary files, put them into `mods/<module_name>/platforms/<kernel>/<arch>/home/.confiles/bin`.
 
@@ -18,7 +18,7 @@ It's not enough to just using `<kernel>/<arch>` to specify each platform. A bash
 
 ## Install modules
 
-Run `install.sh` to install add modules from `mods/`
+Run `install.sh` to install modules under `mods/`
 
 See `install.sh -h` for usage
 
@@ -30,5 +30,5 @@ See `confiles.sh -h` for usage.
 
 # Binary files
 
-This reporsitory not supply binary files. Make your own module with binary file locally and put it to `~/.confiles/mods/`
+This reporsitory won't supply binary files. Make your own module with binary file locally and put it into `~/.confiles/mods/`
 
