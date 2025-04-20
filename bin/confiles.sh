@@ -327,36 +327,42 @@ src_check() {
 	src_check_file_dup
 }
 
-CF_RM_CHACHE_FILE="remove_files.list"
-CF_RM_CHACHE_RPATH="${CF_CACHE_RDIR}/${CF_RM_CHACHE_FILE}"
-CF_RM_CHACHE_PATH="${CF_CACHE_DIR}/${CF_RM_CHACHE_FILE}"
-CF_DST_RM_CHACHE_PATH="${DST_DIR}/${CF_RM_CHACHE_RPATH}"
+CF_RM_CACHE_FILE="remove_files.list"
+CF_RM_CACHE_RPATH="${CF_CACHE_RDIR}/${CF_RM_CACHE_FILE}"
+CF_RM_CACHE_TMP_PATH="${CF_CACHE_DIR}/${CF_RM_CACHE_FILE}.tmp"
+CF_RM_CACHE_PATH="${CF_CACHE_DIR}/${CF_RM_CACHE_FILE}"
+CF_DST_RM_CHACHE_PATH="${DST_DIR}/${CF_RM_CACHE_RPATH}"
 
 # shellcheck disable=SC2317
-prepare_src_rm_files() {
+prepare_src_rm_tmp_files() {
 	local mod_dir="$1"
 	local src_dir="$mod_dir/home"
 	if ! [ -d "$src_dir" ]; then
 		return 1
 	fi
 	{
-		cd "$src_dir" && find -L . -type f -printf "%P\n"
-	} >>"$CF_RM_CHACHE_PATH"
+		cd "$src_dir" && find -L . -mindepth 1 -printf "%P\n"
+	} >>"$CF_RM_CACHE_TMP_PATH"
 }
 prepare_rm_cache() {
-	[ -f "$CF_RM_CHACHE_PATH" ] && rm "$CF_RM_CHACHE_PATH"
+	[ -f "$CF_RM_CACHE_TMP_PATH" ] && rm "$CF_RM_CACHE_TMP_PATH"
+	[ -f "$CF_RM_CACHE_PATH" ] && rm "$CF_RM_CACHE_PATH"
 	[ ! -d "$CF_CACHE_DIR" ] && mkdir -p "$CF_CACHE_DIR"
 
-	for_each_src_to_dst_mods_handle prepare_src_rm_files
+	for_each_src_to_dst_mods_handle prepare_src_rm_tmp_files
 
-	echo ">>> ${CF_RM_CHACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
+	# sort by path depth to rm dir
+	perl -e 'my %seen; print grep { !$seen{$_}++ } sort { length($b) <=> length($a) } <>' "$CF_RM_CACHE_TMP_PATH" > "$CF_RM_CACHE_PATH"
+	rm "$CF_RM_CACHE_TMP_PATH"
+
+	echo ">>> ${CF_RM_CACHE_PATH} -> ${CF_DST_RM_CHACHE_PATH}"
 	local cmd
-	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --rsync-path='mkdir -p ${CF_CACHE_RDIR} && rsync' --info=NONE ${CF_RM_CHACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
+	cmd="$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --rsync-path='mkdir -p ${CF_CACHE_RDIR} && rsync' --info=NONE ${CF_RM_CACHE_PATH} ${CF_DST_RM_CHACHE_PATH}"
 	eval "$cmd"
 }
 do_remove_modules() {
 	[ "$OPT_DEBUG" = "true" ] && echo "=== do_remove_modules()"
-	local rm_cmd="for file in \$(cat ${DST_LRDIR}/${CF_RM_CHACHE_RPATH}); do path=${DST_LRDIR}/\${file}; [ -f \$path ] && rm -v \$path; done"
+	local rm_cmd="for file in \$(cat ${DST_LRDIR}/${CF_RM_CACHE_RPATH}); do path=${DST_LRDIR}/\${file}; if [ -d \$path ]; then rm -dv \$path; else rm -v \$path; fi; done 2>&1"
 	[ "$OPT_DEBUG" = "true" ] && echo "rm_cmd: $rm_cmd"
 	do_cmd_on_dst "$rm_cmd"
 }
