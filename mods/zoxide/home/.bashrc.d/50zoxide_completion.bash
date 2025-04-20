@@ -1,0 +1,1 @@
+../.confiles/third_party/zoxide/completions/zoxide.bash
