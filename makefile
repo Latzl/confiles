@@ -7,11 +7,11 @@ THIS_ARCH=$(shell uname -m)
 BUILD_DIR=build
 PACKAGE_DIR=$(BUILD_DIR)/package
 
-.PHONY: clean pack_confile-bin
+.PHONY: clean pack_confiles-bin
 
 clean:
 	@rm -rvf $(BUILD_DIR)
 
-pack_confile-bin:
+pack_confiles-bin:
 	@mkdir -p $(PACKAGE_DIR)
-	@tar -czvf $(PACKAGE_DIR)/confile-bin-$(VERSION)-$(THIS_OS)-$(THIS_ARCH).tar.gz -C mods/ confiles-bin/
+	@tar -czvf $(PACKAGE_DIR)/confiles-bin-$(VERSION)-$(THIS_OS)-$(THIS_ARCH).tar.gz -C mods/ confiles-bin/
