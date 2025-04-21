@@ -1,11 +1,31 @@
 _ins-exe-ret-to-cmdline_get_exe_path() {
-    exe_dir="$HOME/.confiles/bin"
-    exe=$(find "$exe_dir" -type f -executable -printf "%P\n" | fzf)
+    local exe_dir="$HOME/.confiles/bin"
+    cd "$exe_dir" || return
+    local exe
+    # shellcheck disable=SC2016
+    exe=$(
+        find . -type f -executable -printf "%P\n" |
+            fzf --preview '
+                type=$(file -b --mime-type {});
+                case "$type" in
+                    *"script"*|*"python"*)
+                        head -n100 {}
+                        ;;
+                    *"application"*|*"executable"*)
+                        {} --help
+                        ;;
+                    *)
+                        echo unpreviewable type: "$type"
+                        ;;
+                esac
+            '
+    )
     exe_path="$exe_dir/$exe"
     echo "$exe_path"
 }
 
 ins-exe-ret-to-cmdline() {
+    local exe_path
     exe_path=$(_ins-exe-ret-to-cmdline_get_exe_path)
     if ! [ -f "$exe_path" ]; then
         echo "$exe_path is not found or is not an executable file" >&2
@@ -18,6 +38,7 @@ ins-exe-ret-to-cmdline() {
 }
 
 ins-exe-ret-to-cmdline-with-args() {
+    local exe_path
     exe_path=$(_ins-exe-ret-to-cmdline_get_exe_path)
     if ! [ -f "$exe_path" ]; then
         echo "$exe_path is not found or is not an executable file" >&2
