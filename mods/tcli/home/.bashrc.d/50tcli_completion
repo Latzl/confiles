@@ -1,0 +1,48 @@
+_tcli_completion() {
+    local LIST_HEADER='Candidate nodes:'
+
+    # _log() {
+    #     local content=$1
+    #     echo -e "$content" >>/tmp/tcli_completion.log
+    # }
+    # _log "=========="
+    # local temp_words
+    # temp_words="${COMP_WORDS[@]:0:$COMP_CWORD}"
+    # _log "temp_words: ${temp_words}"
+    local exec="${COMP_WORDS[0]}"
+    # _log "exec: ${exec}"
+    local args
+    args=("${COMP_WORDS[@]:1:$COMP_CWORD-1}")
+    # _log "args:\n$(printf "%s\n" "${args[@]}")\n"
+    local cmd=("${exec}" "--list" "--silence" "${args[@]}")
+    # _log "cmd:\n$(printf "%s\n" "${cmd[@]}")\n"
+    local output
+    output=$("${cmd[@]}")
+    # _log "output: '$output'"
+
+    local header
+    header=$(echo "${output}" | head -n 1)
+    if [[ x"${header}" != x"${LIST_HEADER}" ]]; then
+        COMPREPLY=()
+        return 1
+    fi
+    local content
+    content=$(echo "${output}" | tail -n +2)
+    # COMPREPLY=($(compgen -W "$content" -- "$2"))
+    readarray -t COMPREPLY < <(compgen -W "$content" -- "$2")
+}
+
+_tcli_completion_get_execs() {
+    local prefix=tcli
+    local execs=()
+    execs+=("$(compgen -c "${prefix}")")
+    for ((i = 0; i < ${#execs[@]}; i++)); do
+        execs[i]=$(basename "${execs[$i]}")
+    done
+    execs+=("${prefix}")
+    printf "%s\n" "${execs[@]}" | sort | uniq
+}
+
+for tcli in $(_tcli_completion_get_execs); do
+    complete -o default -F _tcli_completion "${tcli}"
+done
