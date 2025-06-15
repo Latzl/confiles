@@ -1,0 +1,55 @@
+#!/bin/bash
+
+get_usage() {
+    cat <<_USAGE_EOF_
+A wrapper for rg and fzf to search for files and open them in the editor.
+Usage: rgthefiles {pattern} [dir] [rg options]
+_USAGE_EOF_
+}
+
+if [ $# -lt 1 ]; then
+    get_usage
+    exit 1
+fi
+
+rg_pattern="$1"
+shift
+
+# echo "$#: $*"
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+    -h | --help)
+        get_usage
+        exit 0
+        ;;
+    -*)
+        rg_opts+=("$1")
+        shift
+        ;;
+    *)
+        if [ -d "$1" ]; then
+            rg_search_dirs+=("$1")
+            shift
+        else
+            echo "invalid option without '-': $1" >&2
+            exit 1
+        fi
+        ;;
+    esac
+done
+
+# if found -h in args
+if [[ "$*" =~ "-h" ]]; then
+    get_usage
+    exit 0
+fi
+
+CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="${CURR_DIR}/lib/rgthefiles"
+
+rg "$rg_pattern" -l "${rg_opts[@]}" "${rg_search_dirs[@]}" |
+    fzf --ansi \
+        --delimiter : \
+        --preview "rg ${rg_pattern} {} -p -C2 ${rg_opts[*]}" \
+        --bind "enter:become:${LIB_DIR}/open_rgfile.bash ${rg_pattern} {1} ${rg_opts[*]}"
