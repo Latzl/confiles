@@ -1,6 +1,13 @@
+#--preview-window 'wrap'
 --bind ctrl-k:kill-line
 --bind 'alt-P:toggle-preview'
 # raw item string
 --bind 'alt-I:change-preview-window(default:wrap)+change-preview(echo {})'
 # cat
 --bind 'alt-C:change-preview-window(default:wrap)+change-preview(cat {})'
+
+# page up/down
+--bind 'ctrl-v:page-down,alt-v:page-up'
+
+# preview
+--bind 'ctrl-alt-p:preview-page-up,ctrl-alt-n:preview-page-down'

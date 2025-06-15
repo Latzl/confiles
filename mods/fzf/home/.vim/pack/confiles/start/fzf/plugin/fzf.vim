@@ -1067,8 +1067,7 @@ endfunction
 
 let s:default_action = {
   \ 'ctrl-t': 'tab split',
-  \ 'ctrl-x': 'split',
-  \ 'ctrl-v': 'vsplit' }
+  \ 'ctrl-x': 'split' }
 
 function! s:shortpath()
   let short = fnamemodify(getcwd(), ':~:.')
