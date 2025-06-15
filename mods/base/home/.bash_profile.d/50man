@@ -1,0 +1,2 @@
+
+export MANPATH="$HOME/.confiles/.local/share/man:$MANPATH"
