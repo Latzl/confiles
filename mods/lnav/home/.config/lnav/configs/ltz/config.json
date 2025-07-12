@@ -98,6 +98,9 @@
 				"x4c": {
 					"command": ":echo L"
 				},
+				"x4d": {
+					"command": ":echo M"
+				},
 				"x0d": {
 					"command": "|un-mtc"
 				},

@@ -3,11 +3,11 @@
 
 ;WITH lines_previous AS (
     SELECT 
-        log_line 
+        CAST(log_line AS INTEGER) AS log_line 
     FROM 
         all_logs
     WHERE 
-        log_line < log_top_line()
+        CAST(log_line AS INTEGER) < log_top_line()
 )
 SELECT COALESCE(MAX(log_line), 0) AS pre_line FROM lines_previous;
 

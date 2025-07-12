@@ -129,6 +129,10 @@
 				"x4c": {
 					"command": ":echo L"
 				},
+				// unset official M
+				"x4d": {
+					"command": ":echo M"
+				},
 				// C-m
 				"x0d": {
 					"command": "|un-mtc"

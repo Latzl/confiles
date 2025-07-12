@@ -4,11 +4,11 @@
         "description": "Format file generated from regex101 entry -- https://regex101.com/r/2AaC89/1",
         "regex": {
             "std": {
-                "pattern": "^<(?<log_level>\\d*)>\\[\\s*(?<uptime>[\\d.]*)\\]\\[\\s*(?<cpu>\\d*)\\]\\s*\\[\\s*(?<src>.*?)\\]\\s(?<conbtent>.*)$"
+                "pattern": "^<(?<loglevel>\\d*)>\\[\\s*(?<uptime>[\\d.]*)\\]\\[\\s*(?<cpu>\\d*)\\]\\s*\\[\\s*(?<src>.*?)\\]\\s(?<conbtent>.*)$"
             }
         },
 		"timestamp-field": "uptime",
-		"level-field": "log_level",
+		"level-field": "loglevel",
         "level": {
 			"fatal": "$^(0|1){1}$",
 			"critical": "2",
@@ -28,7 +28,7 @@
                 "kind": "string",
                 "identifier": true
             },
-            "log_level": {
+            "loglevel": {
                 "kind": "string",
                 "identifier": true
             },
