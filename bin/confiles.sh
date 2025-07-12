@@ -53,9 +53,10 @@ ARGS="$(getopt -l debug,help,mods:,exclude-mods:,dst: -o h,m:,e:,d: -- "$@")" ||
 eval set -- "$ARGS"
 
 CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
-source "${CURR_DIR}/lib-confiles/source.bash"
-source "${CURR_DIR}/lib-confiles/color.bash"
-source "${CURR_DIR}/lib-confiles/ssh.bash"
+LIB_DIR="${CURR_DIR}/lib/confiles"
+source "${LIB_DIR}/source.bash"
+source "${LIB_DIR}/color.bash"
+source "${LIB_DIR}/ssh.bash"
 
 module_paths=()
 DST_DIR=''
@@ -142,7 +143,7 @@ if [ -z "$DST_DIR" ]; then
 	fi
 fi
 
-source "${CURR_DIR}/lib-confiles/destination.bash"
+source "${CURR_DIR}/lib/confiles/destination.bash"
 
 # print infos
 if $OPT_DEBUG; then
@@ -323,8 +324,24 @@ src_check_file_dup() {
 		return 0
 	fi
 }
+src_check_permission() {
+	local mods
+	# mods=("$(find "${CF_MODS_DIR}" -maxdepth 1 -mindepth 1 -not -name '.*')")
+	mapfile -t mods < <(find "${CF_MODS_DIR}" -maxdepth 1 -mindepth 1 -not -name '.*')
+	local diffs
+	diffs=$("${LIB_DIR}/diff-permission.pl" "${mods[@]}")
+	if [ -n "$diffs" ]; then
+		echo "$(to_red "Permission diffs"):"
+		echo "$diffs"
+		return 1
+	fi
+
+	to_green "No permission diffs"
+	return 0
+}
 src_check() {
 	src_check_file_dup
+	src_check_permission
 }
 
 CF_RM_CACHE_FILE="remove_files.list"
