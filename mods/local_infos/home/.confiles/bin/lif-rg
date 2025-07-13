@@ -1,0 +1,40 @@
+#!/bin/bash
+
+get_usage() {
+    cat <<_USAGE_EOF_
+local_info rg. The environment variable LIF_SEARCH_DIRS is used to search for files.
+Usage: lif-rg {pattern} [rg args]
+    +h, ++help
+        Print this help message and exit.
+_USAGE_EOF_
+}
+
+if [ $# -lt 1 ]; then
+    get_usage
+    exit 1
+fi
+
+if [ -z "$LIF_SEARCH_DIRS" ]; then
+    echo "LIF_SEARCH_DIRS is not set"
+    exit 1
+fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+    +h | ++help)
+        get_usage
+        exit 0
+        ;;
+    *)
+        rg_args+=("$1")
+        shift
+        ;;
+    esac
+done
+
+search_dirs=()
+while IFS= read -r -d ':' line; do
+    [[ -n $line ]] && search_dirs+=("$line")
+done <<<"${LIF_SEARCH_DIRS}:"
+
+rg "${rg_args[@]}" "${search_dirs[@]}"

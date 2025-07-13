@@ -2,7 +2,7 @@
 
 get_usage() {
     cat <<_USAGE_EOF_
-Usage: open_rgfile {pattern} {file_path} [rg options]
+Usage: open_rgedfile {pattern} {file_path} [rg options]
 _USAGE_EOF_
 }
 
@@ -11,8 +11,8 @@ if [ $# -lt 2 ]; then
     exit 1
 fi
 
-open_rgfile() {
-    rg_result_path='/tmp/open_rgfile-rg_result.tmp'
+open_rgedfile() {
+    rg_result_path='/tmp/open_rgedfile-rg_result.tmp'
 
     local rg_pattern="$1"
     local file_path="$2"
@@ -42,4 +42,4 @@ open_rgfile() {
 
 }
 
-open_rgfile "$@"
+open_rgedfile "$@"

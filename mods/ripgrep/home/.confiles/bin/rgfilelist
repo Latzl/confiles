@@ -1,0 +1,41 @@
+#!/bin/bash
+
+get_usage() {
+    local exe=rgfilelist
+    cat <<_USAGE_EOF_
+Accept files rather than raw text as input. This is useful for searching specific files.
+Usage: $exe {pattern} [rg args]
+    +h, ++help
+        Print this help message and exit.
+Example:
+    {command output filelist} | $exe {pattern} [rg args]
+    $exe {pattern} [rg args] < filelist
+    $exe {pattern} [rg args] [dir]  # degenarate to rg
+_USAGE_EOF_
+}
+
+if [ $# -lt 1 ]; then
+    get_usage
+    exit 1
+fi
+
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+    +h | ++help)
+        get_usage
+        exit 0
+        ;;
+    *)
+        rg_args+=("$1")
+        shift
+        ;;
+    esac
+done
+
+if [ ! -t 0 ]; then
+    # from pipe/file
+    # https://github.com/BurntSushi/ripgrep/issues/273
+    xargs -n 512 -d'\n' rg "${rg_args[@]}"
+else
+    rg "${rg_args[@]}"
+fi

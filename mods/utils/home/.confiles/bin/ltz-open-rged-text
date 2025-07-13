@@ -1,0 +1,59 @@
+#!/bin/bash
+exe=ltz-open-rged-text
+
+get_usage() {
+    cat <<_USAGE_EOF_
+A rg/fzf wrapper to search files and open specific one with editor.
+Usage: $exe {pattern} [rg args] {search dir} [search dir...]
+    +h, ++help
+        Print this help message and exit.
+_USAGE_EOF_
+}
+
+if [ $# -lt 1 ]; then
+    get_usage
+    exit 1
+fi
+
+rg_pattern="$1"
+shift
+
+args=()
+while [ "$#" -gt 0 ]; do
+    case "$1" in
+    +h | ++help)
+        get_usage
+        exit 0
+        ;;
+    *)
+        args+=("$1")
+        shift
+        ;;
+    esac
+done
+
+CURR_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LIB_DIR="${CURR_DIR}/lib/$exe"
+
+# seperate rg_args and search_dirs
+rg_args=()
+search_dirs=()
+idx=${#args[@]}
+while ((idx > 0)); do
+    if [[ ${args[idx - 1]} == -* ]]; then
+        break
+    fi
+    if [ ! -d "${args[idx - 1]}" ]; then
+        break
+    fi
+    idx=$((idx - 1))
+done
+search_dirs=("${args[@]:idx}")
+rg_args=("${args[@]:0:idx}")
+
+# main
+rg-to-filelist "$rg_pattern" "${rg_args[@]}" "${search_dirs[@]}" |
+    fzf --ansi \
+        --delimiter : \
+        --preview "rg '${rg_pattern}' {} -p -C2 ${rg_args[*]}" \
+        --bind "enter:become:${LIB_DIR}/open_rgedfile.bash '${rg_pattern}' '{1}' ${rg_args[*]}"
