@@ -1,5 +1,7 @@
 set -g default-terminal "screen-256color"
 
+set -g default-command "${SHELL}"  # non-login shell to avoiding source profile every new window created
+
 #setw -g xterm-keys on
 set -s escape-time 10                     # faster command sequences
 set -sg repeat-time 300                   # increase repeat timeout
@@ -181,6 +183,3 @@ bind-key v next-layout
 #
 #   tmux set -g mouse $new
 # }
-
-# Initialize TMUX plugin manager (keep this line at the very bottom of tmux.conf)
-#run '~/.tmux/plugins/tpm/tpm'
