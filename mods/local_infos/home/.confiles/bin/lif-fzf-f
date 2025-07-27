@@ -1,0 +1,4 @@
+#!/bin/bash
+# just find files
+
+lif-fzf -type f

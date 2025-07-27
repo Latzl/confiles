@@ -2,17 +2,13 @@
 
 get_usage() {
     cat <<_USAGE_EOF_
-local_info rg. The environment variable LIF_SEARCH_DIRS is used to search for files.
-Usage: lif-rg {pattern} [rg args]
+local_info fzf. fzf dirctories spcecified by environment variable LIF_SEARCH_DIRS.
+Usage: lif-fzf [find args]
     +h, ++help
         Print this help message and exit.
 _USAGE_EOF_
 }
 
-if [ $# -lt 1 ]; then
-    get_usage
-    exit 1
-fi
 
 if [ -z "$LIF_SEARCH_DIRS" ]; then
     echo "LIF_SEARCH_DIRS is not set" >&2
@@ -26,7 +22,7 @@ while [ "$#" -gt 0 ]; do
         exit 0
         ;;
     *)
-        rg_args+=("$1")
+        find_args+=("$1")
         shift
         ;;
     esac
@@ -37,4 +33,10 @@ while IFS= read -r -d ':' line; do
     [[ -n $line ]] && search_dirs+=("$line")
 done <<<"${LIF_SEARCH_DIRS}:"
 
-rg "${rg_args[@]}" "${search_dirs[@]}"
+get_select(){
+    for dir in "${search_dirs[@]}"; do
+        find "$dir" -xdev "${find_args[@]}" -print0
+    done | fzf --read0
+}
+
+get_select
