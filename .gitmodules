@@ -25,3 +25,9 @@
 [submodule "mods/tmux/home/.tmux/plugins/tmux-easy-motion"]
 	path = mods/tmux/home/.tmux/plugins/tmux-easy-motion
 	url = https://github.com/IngoMeyer441/tmux-easy-motion.git
+[submodule "mods/vim/home/.vim/pack/confiles/start/vim-bookmarks"]
+	path = mods/vim/home/.vim/pack/confiles/start/vim-bookmarks
+	url = https://github.com/MattesGroeger/vim-bookmarks.git
+[submodule "mods/vim/home/.vim/pack/confiles/start/winresizer"]
+	path = mods/vim/home/.vim/pack/confiles/start/winresizer
+	url = https://github.com/simeji/winresizer.git

@@ -47,8 +47,21 @@ let g:which_key_sep = ':'
 nnoremap <leader>c :close<CR>
 let g:which_key_map.c = 'close window'
 let g:which_key_map.w = { 'name': 'window' }
-nnoremap <leader>wm <C-W>_<C-W><Bar>
 let g:which_key_map.w.m = 'maximize'
+nnoremap <leader>wm <C-W>_<C-W><Bar>
+let g:which_key_map.w.r = 'resize mode'
+let g:winresizer_start_key = '<leader>wr'
+
+nnoremap <C-W><C-H> <C-W>h<C-W>_<C-W><Bar>
+nnoremap <C-W><C-J> <C-W>j<C-W>_<C-W><Bar>
+nnoremap <C-W><C-K> <C-W>k<C-W>_<C-W><Bar>
+nnoremap <C-W><C-L> <C-W>l<C-W>_<C-W><Bar>
+
+" tab
+let g:which_key_map.t = { 'name': 'tab' }
+nnoremap <leader>tn :tabnew<CR>
+let g:which_key_map.t.n = 'new tab'
+
 
 " buffer
 let g:which_key_map.b = { 'name': 'buffer' }
@@ -67,3 +80,7 @@ nnoremap <leader>mn :set number! relativenumber!<CR>
 let g:which_key_map.m.n = 'toggle num rnum'
 nnoremap <leader>mw :set wrap!<CR>
 let g:which_key_map.m.w = 'toggle wordwrap'
+
+let g:which_key_map.p = 'paste'
+nnoremap <leader>p "0p
+vnoremap <leader>p "0p
