@@ -7,7 +7,6 @@
                 "pattern": "^<(?<loglevel>\\d*)>\\[\\s*(?<uptime>[\\d.]*)\\]\\[\\s*(?<cpu>\\d*)\\]\\s*\\[\\s*(?<src>.*?)\\]\\s(?<conbtent>.*)$"
             }
         },
-		"timestamp-field": "uptime",
 		"level-field": "loglevel",
         "level": {
 			"fatal": "$^(0|1){1}$",

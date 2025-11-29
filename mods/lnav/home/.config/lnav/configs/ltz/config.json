@@ -69,19 +69,19 @@
 					"command": ":toggle-view log"
 				},
 				"x4a": {
-					"command": ":echo J"
+					"command": "|ltz-what-sf1-do"
 				},
 				"x4b": {
-					"command": ":echo K"
+					"command": "|ltz-what-sf0-do"
 				},
 				"x07": {
 					"command": "|ltz-what-tf-do"
 				},
 				"x0a": {
-					"command": "|ltz-what-sf1-do"
+					"command": ":echo C-j"
 				},
 				"x0b": {
-					"command": "|ltz-what-sf0-do"
+					"command": ":echo C-k"
 				},
 				"x2e": {
 					"command": "|ltz-what-do"

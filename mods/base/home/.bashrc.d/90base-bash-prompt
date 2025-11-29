@@ -1,0 +1,64 @@
+if [ "$(id -u)" -eq 0 ]; then
+    export _BASE_BASH_PROMPT_SYMBOL="\[\e[38;5;196m\]#\[\e[0m\]"
+else
+    export _BASE_BASH_PROMPT_SYMBOL="\[\e[38;5;99m\]$\[\e[0m\]"
+fi
+
+# 格式化耗时函数
+_base_base_prompt_dur_format() {
+    local ns=$1
+    local us=$((ns / 1000))
+    local s=$((us / 1000000))
+    local us_rem=$((us % 1000000))
+
+    # 格式化微秒成 sss'uuu
+    local sec_part
+    sec_part=$(printf "%d.%03d'%03ds" $s $((us_rem / 1000)) $((us_rem % 1000)))
+
+    if [ $s -ge 60 ]; then
+        local h=$((s / 3600))
+        local m=$(((s % 3600) / 60))
+        local sec=$((s % 60))
+        sec_part=$(printf "%d.%03d'%03ds" $sec $((us_rem / 1000)) $((us_rem % 1000)))
+
+        local out=""
+        [ $h -gt 0 ] && out+="${h}h"
+        [ $m -gt 0 ] && out+="${m}m"
+        out+="$sec_part"
+        echo "$out"
+    else
+        echo "$sec_part"
+    fi
+}
+
+_base_bash_prompt_set_command() {
+    local EXIT_CODE="$?"
+
+    local GREEN_COLOR="\[\e[38;5;40m\]"
+    local RED_COLOR="\[\e[38;5;196m\]"
+    local RESET_COLOR="\[\e[0m\]"
+    local TIME_COLOR="\[\e[38;5;215m\]"
+    local USER_COLOR="\[\e[38;5;38m\]"
+    local PATH_COLOR="\[\e[38;5;246m\]"
+
+    local STATUS
+    if [ $EXIT_CODE -eq 0 ]; then
+        STATUS="${GREEN_COLOR}✓"
+    else
+        STATUS="${RED_COLOR}✗($EXIT_CODE)"
+    fi
+    STATUS+="${RESET_COLOR}"
+
+    # status line
+    PS1="${TIME_COLOR}[\D{%Y-%m-%d %H:%M:%S}]${RESET_COLOR}"
+    PS1+=" ${USER_COLOR}\u@\h${RESET_COLOR}"
+    PS1+=" ${STATUS}"
+
+    # current working directory
+    PS1+="\n> ${PATH_COLOR}\w${RESET_COLOR}"
+
+    # prompt symbol
+    PS1+="\n${_BASE_BASH_PROMPT_SYMBOL} "
+}
+
+PROMPT_COMMAND='_base_bash_prompt_set_command'

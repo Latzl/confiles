@@ -91,11 +91,11 @@
 				},
 				// J
 				"x4a": {
-					"command": ":echo J"
+					"command": "|ltz-what-sf1-do"
 				},
 				// K
 				"x4b": {
-					"command": ":echo K"
+					"command": "|ltz-what-sf0-do"
 				},
 				// C-g
 				"x07": {
@@ -103,11 +103,11 @@
 				},
 				// C-j
 				"x0a": {
-					"command": "|ltz-what-sf1-do"
+					"command": ":echo C-j"
 				},
 				// C-k
 				"x0b": {
-					"command": "|ltz-what-sf0-do"
+					"command": ":echo C-k"
 				},
 				// .
 				"x2e": {
