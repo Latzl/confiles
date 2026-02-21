@@ -22,6 +22,7 @@ OPTIONS:
 	--exclude-mods|-e	specify mods to be excluded by action, mod seperated by comma exclusive with --mods
 		if --mods or --exclude-mods not specified, all mods will be specified by default
 	--dst|-d			specify dst directory, default is ~. No have to type --dst or -d explicitly, just type dst_dir can be ok.
+	--dry-run			dry run for action: status and apply. Just print command, not run it
 
 The option dst_dir can be remote directory with format follow rsync's. If dst_dir not specified, ~ will be used as default.
 
@@ -45,7 +46,7 @@ _USAGE_EOF_
 
 OPT_DEBUG=false
 
-ARGS="$(getopt -l debug,help,mods:,exclude-mods:,dst: -o h,m:,e:,d: -- "$@")" || {
+ARGS="$(getopt -l debug,help,mods:,exclude-mods:,dst:,dry-run -o h,m:,e:,d: -- "$@")" || {
 	get_usage >&2
 	exit 1
 }
@@ -110,6 +111,10 @@ while true; do
 	--dst | -d)
 		DST_DIR="$2"
 		shift 2
+		;;
+	--dry-run)
+		OPT_DRY_RUN=true
+		shift
 		;;
 	--)
 		shift
@@ -186,8 +191,12 @@ cf_status() {
 		dst_dir="$HOME"
 	fi
 
-	$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/" |
-		print_rsync_output ">>> $src_dir -> $dst_dir"
+	if [ "$OPT_DRY_RUN" = "true" ]; then
+		echo "$DST_SSHPASS_CMD" rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/"
+	else
+		$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/" |
+			print_rsync_output ">>> $src_dir -> $dst_dir"
+	fi
 
 	return "${PIPESTATUS[0]}"
 }
@@ -204,8 +213,12 @@ cf_apply() {
 		dst_dir="$HOME"
 	fi
 
-	$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/" |
-		print_rsync_output ">>> $src_dir -> $dst_dir"
+	if [ "$OPT_DRY_RUN" = "true" ]; then
+		echo "$DST_SSHPASS_CMD" rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/"
+	else
+		$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/" |
+			print_rsync_output ">>> $src_dir -> $dst_dir"
+	fi
 
 	return "${PIPESTATUS[0]}"
 }
