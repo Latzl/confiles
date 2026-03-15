@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog
+List res files, fuzzy search file name, and open the file selected.
+See mts-res-get
+USAGE
+}
+
+system('mts-res-get --print0 | xargs -0 -o -I{} mts-open {}') == 0
+  or warn "Failed to open files\n";

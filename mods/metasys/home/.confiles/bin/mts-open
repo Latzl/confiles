@@ -1,0 +1,51 @@
+#!/usr/bin/env perl
+use strict;
+use warnings;
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog {file_path}
+Opens a file based on its MIME type.
+Mime types and their associated command map is listed below, some are apply only in specific system:
+    all:
+        text/plain => vim {}
+    wsl:
+        text/html => explorer.exe {}
+Command 'xdg-open {}' is used for file mime type not list above.
+Example:
+    $prog test.html
+TODO:
+    Multiple file support
+USAGE
+}
+
+my $file = shift or die usage();
+
+sub is_wsl {
+    return $ENV{WSL_DISTRO_NAME};
+}
+
+sub get_type_to_cmd {
+    my %map = ( 
+        'text/plain' => [ 'vim', '{}' ], 
+        'inode/directory' => [ 'echo', '{}' ], 
+    );
+
+    if ( is_wsl() ) {
+        $map{'text/html'} = [ 'explorer.exe', '{}' ];
+    }
+
+    return %map;
+}
+my %type_to_cmd = get_type_to_cmd();
+
+my $mime = `file --mime-type -b -- "$file"`;
+chomp($mime);
+
+my @cmd =
+  exists $type_to_cmd{$mime}
+  ? map { s/\{\}/$file/gr } @{ $type_to_cmd{$mime} }
+  : ( 'xdg-open', $file );
+
+system(@cmd);

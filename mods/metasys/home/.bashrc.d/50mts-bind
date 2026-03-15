@@ -1,0 +1,53 @@
+#!/bin/bash
+
+# open file of current edit line showing with mst-open
+_mts_bind_open_current_line() {
+    local line="$READLINE_LINE"
+
+    # trim
+    line="${line%"${line##*[![:space:]]}"}"
+    line="${line#"${line%%[![:space:]]*}"}"
+
+    if [[ -f "$line" || -d "$line" ]]; then
+        mts-open "$line"
+    else
+        echo "file not exist $line" >&2
+    fi
+}
+
+_mts_bind_res_get() {
+    local selected
+    selected="$(mts-res-get --print0 | xargs -0)"
+    READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
+    READLINE_POINT=$((READLINE_POINT + ${#selected}))
+}
+
+_mts_bind_res_get_dir() {
+    local selected
+    selected="$(mts-res-get -d --print0 | xargs -0)"
+    READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
+    READLINE_POINT=$((READLINE_POINT + ${#selected}))
+}
+_mts_bind_res_cd_dir() {
+    local selected
+    selected="$(mts-res-get -d --print0 | xargs -0)"
+    [ -z "$selected" ] && {
+        echo "no selected $selected"
+        return 1
+    }
+    [ ! -d "$selected" ] && {
+        echo "no a dir: $selected"
+        return 1
+    }
+    cd "$selected" || {
+        echo "cd $selected failed"
+        return 1
+    }
+    echo "now on $(pwd)"
+}
+
+bind -x '"\eaf":_mts_bind_open_current_line'
+bind -x '"\earf":_mts_bind_res_get'
+bind -x '"\ear\C-f":mts-res-open'
+bind -x '"\eard":_mts_bind_res_get_dir'
+bind '"\ear\C-d": "\C-ex\C-u _mts_bind_res_cd_dir\C-m\C-y\C-b\C-d"'

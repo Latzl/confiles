@@ -1,0 +1,94 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+use File::Spec;
+
+my $file_list_conf_name = 'res-get-files.list';
+my $dir_list_conf_name  = 'res-get-dirs.list';
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog [options]
+List res files, fuzzy search file name, and return the file name selected.
+Options:
+    --file, -f  list res only files. Default if --file and --dir are not specified.
+    --dir, -d   list res only dirs
+    --print0    print files with null character as separator
+
+Make config list under \$HOME/.config/mts/ to define the directories of res. Different type of res files must be defined in different list file:
+    file: $file_list_conf_name
+    directory: $dir_list_conf_name
+USAGE
+}
+
+my $opt_print0 = 0;
+my %opt_types  = (
+    file => 0,
+    dir  => 0,
+);
+
+Getopt::Long::Configure("bundling");
+GetOptions(
+    'file|f' => \$opt_types{file},
+    'dir|d'  => \$opt_types{dir},
+    'print0' => \$opt_print0,
+) or die usage();
+
+if ( !$opt_types{file} && !$opt_types{dir} ) {
+    $opt_types{file} = 1;
+}
+
+my $home = $ENV{HOME} or die "environment HOME not set\n";
+my $file_list_config_path =
+  File::Spec->catfile( $home, '.config', 'mts', $file_list_conf_name );
+my $dir_list_config_path =
+  File::Spec->catfile( $home, '.config', 'mts', $dir_list_conf_name );
+
+sub fzf_select {
+    my $fzf_preview_script = <<'PREVIEW_SCRIPT';
+type=$(file -b --mime-type {});
+case "$type" in
+    text/*|*script*|*python*)
+        head -c $((1*1024*1024)) {}
+        ;;
+    inode/directory)
+        ls {} | head -n200
+        ;;
+    *application*|*executable*)
+        {} --help
+        ;;
+    *)
+        echo "unpreviewable type: $type"
+        ;;
+esac
+PREVIEW_SCRIPT
+    my $cmd = join " ", "(",
+      (
+        $opt_types{file}
+        ? "_mts-res-read-config-list --type f --print0 $file_list_config_path &"
+        : ""
+      ),
+      (
+        $opt_types{dir}
+        ? "_mts-res-read-config-list --type d --print0 $dir_list_config_path &"
+        : ""
+      ),
+      "wait",
+      ") | fzf --read0 --print0 --ansi --multi --preview '$fzf_preview_script'";
+
+    return split("\0", `$cmd`);
+}
+
+sub main {
+    my @selected = fzf_select();
+    exit 1 unless @selected;
+
+    my $sep_char = $opt_print0 ? "\0" : "\n";
+    print join( $sep_char, @selected ), $sep_char;
+}
+
+main();
