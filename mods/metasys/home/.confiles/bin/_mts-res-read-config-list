@@ -1,0 +1,83 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use Getopt::Long;
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog {config_path}
+List res config list
+Options:
+    --print0    print files with null character as separator
+    --type {type|type2|...}    filter by type, type include:
+        f: file
+        d: directory
+        l: link
+USAGE
+}
+
+my $opt_print0 = 0;
+my $opt_type   = '';
+
+GetOptions(
+    'print0' => \$opt_print0,
+    'type=s' => \$opt_type,
+) or usage();
+
+my $config_path = shift or die usage();
+die "Config file '$config_path' does not exist\n" unless -f $config_path;
+
+sub read_config_dirs {
+    my ($path) = @_;
+    open my $fh, '<', $path or die "Cannot open config file '$path': $!\n";
+
+    my @dirs;
+    while (<$fh>) {
+        chomp;
+        s/#.*$//;
+        s/^\s+|\s+$//g;
+        next unless length;
+        push @dirs, $_;
+    }
+
+    close $fh;
+    return @dirs;
+}
+
+my @dirs = read_config_dirs($config_path);
+die "No res dirs found\n" unless @dirs;
+
+my @find_cmd = ( 'find', @dirs, '-xdev' );
+
+my @type_opts;
+{
+    push @type_opts, "f" if $opt_type =~ /f/;
+    push @type_opts, "d" if $opt_type =~ /d/;
+    push @type_opts, "l" if $opt_type =~ /l/;
+}
+if (@type_opts) {
+    push @find_cmd, "(";
+    for my $i ( 0 .. $#type_opts ) {
+        push @find_cmd, "-type", $type_opts[$i];
+        push @find_cmd, "-o" if $i < $#type_opts;
+    }
+    push @find_cmd, ")";
+}
+push @find_cmd, "-print0" if $opt_print0;
+
+open my $fh, '-|', @find_cmd or die "Cannot run find: $!\n";
+if ($opt_print0) {
+    my $buf;
+    while ( read( $fh, $buf, 8192 ) ) {
+        print $buf;
+    }
+}
+else {
+    while ( my $line = <$fh> ) {
+        print $line;
+    }
+}
+close $fh;

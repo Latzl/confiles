@@ -1,0 +1,81 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+use threads;
+use Thread::Queue;
+use File::Spec;
+use Getopt::Long;
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog [options]
+List binary files.
+Options:
+    --help, -h          Show this help message
+    --jobs, -j {jobs}   Number of jobs to run in parallel (default: 4)
+    --print0            Print the file name with a null character as the delimiter
+
+USAGE
+}
+
+my $opt_jobs   = 4;
+my $opt_help   = 0;
+my $opt_print0 = 0;
+
+GetOptions(
+    "jobs|j=i" => \$opt_jobs,
+    "help|h"   => \$opt_help,
+    "print0"   => \$opt_print0,
+) or die usage();
+
+if ($opt_help) {
+    print usage();
+    exit 0;
+}
+
+my $path = $ENV{PATH} // '';
+my @dirs = split /:/, $path;
+
+my $dir_q = Thread::Queue->new(@dirs);
+my $out_q = Thread::Queue->new();
+
+my @threads;
+
+for ( 1 .. $opt_jobs ) {
+    push @threads, threads->create(
+        sub {
+            while ( defined( my $dir = $dir_q->dequeue_nb ) ) {
+                next unless -d $dir;
+                opendir my $dh, $dir or next;
+                while ( my $entry = readdir $dh ) {
+                    next if $entry eq '.' or $entry eq '..';
+                    my $full = File::Spec->catfile( $dir, $entry );
+                    next unless -f $full;
+                    next unless -x $full;
+                    $out_q->enqueue($entry);
+                }
+                closedir $dh;
+            }
+            $out_q->enqueue(undef);    # worker finished
+        }
+    );
+}
+
+my %seen;
+my $finished = 0;
+my $sep = $opt_print0 ? "\0" : "\n";
+
+while ( $finished < $opt_jobs ) {
+    my $item = $out_q->dequeue;
+    if ( !defined $item ) {
+        $finished++;
+        next;
+    }
+    next if $seen{$item}++;
+    print $item, $sep;
+}
+
+$_->join for @threads;

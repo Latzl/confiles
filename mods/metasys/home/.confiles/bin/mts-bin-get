@@ -1,0 +1,16 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog [options]
+List binary files, fuzzy search file name, and return the file name selected.
+USAGE
+}
+
+my $selected=qx(_mts-bin-list --print0 | fzf --read0 --ansi);
+
+print $selected;
