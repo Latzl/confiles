@@ -1,0 +1,38 @@
+{
+  "hooks": {
+    "Notification": [
+      {
+        "matcher": "permission_prompt",
+        "hooks": [
+          {
+            "type": "command",
+            "async": true,
+            "command": "bash ~/.claude/scripts/should_notify.sh \"Claude needs permission to proceed\""
+          }
+        ]
+      },
+      {
+        "matcher": "elicitation_dialog",
+        "hooks": [
+          {
+            "type": "command",
+            "async": true,
+            "command": "bash ~/.claude/scripts/should_notify.sh \"Claude has a question for you\""
+          }
+        ]
+      }
+    ],
+    "Stop": [
+      {
+        "matcher": "",
+        "hooks": [
+          {
+            "type": "command",
+            "async": true,
+            "command": "bash ~/.claude/scripts/should_notify.sh \"Claude finished\""
+          }
+        ]
+      }
+    ]
+  }
+}
