@@ -1,7 +1,9 @@
 #!/bin/bash
-# Show Windows notification if foreground window is NOT Windows Terminal
+# Check foreground window, then show balloon if needed
 # Usage: should_notify.sh "notification message"
 
-msg="${1:-Claude Code needs your attention}"
+result=$(powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME/.claude/scripts/should_check.ps1")
 
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME/.claude/scripts/notify.ps1" "$msg"
+if [ "$result" = "notify" ]; then
+    powershell.exe -NoProfile -ExecutionPolicy Bypass -File "$HOME/.claude/scripts/notify.ps1" "$1" &
+fi
