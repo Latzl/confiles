@@ -58,33 +58,11 @@ LIB_DIR="${CURR_DIR}/lib/confiles"
 source "${LIB_DIR}/source.bash"
 source "${LIB_DIR}/color.bash"
 source "${LIB_DIR}/ssh.bash"
+source "${LIB_DIR}/rsync.bash"
+source "${LIB_DIR}/modules.bash"
 
 module_paths=()
 DST_DIR=''
-
-handle_mods_option() {
-	local mods=()
-	local mod_path
-	readarray -td, mods < <(printf "%s" "$1")
-	for mod in "${mods[@]}"; do
-		mod_path="${CF_MODS_DIR}/${mod}"
-		if [ -d "$mod_path" ]; then
-			module_paths+=("$mod_path")
-		fi
-	done
-}
-
-handle_exclude_mods_option() {
-	local modules_exclude_list
-	modules_exclude_list="${1//,/$'\n'}"
-	local modules_all=()
-	readarray -t modules_all <<<"$(cd "${CF_MODS_DIR}" && find ./* -maxdepth 0 -exec basename {} \;)"
-	for module in "${modules_all[@]}"; do
-		if ! grep -q "^${module}$" <<<"$modules_exclude_list"; then
-			module_paths+=("${CF_MODS_DIR}/${module}")
-		fi
-	done
-}
 
 while true; do
 	case "$1" in
@@ -97,7 +75,9 @@ while true; do
 		exit 0
 		;;
 	--mods | -m)
-		handle_mods_option "$2"
+		while IFS= read -r mp; do
+			module_paths+=("$mp")
+		done < <(filter_mods_include "$2")
 		if [ "${#module_paths[@]}" -eq 0 ]; then
 			echo "No module found: $2" >&2
 			exit 1
@@ -105,7 +85,9 @@ while true; do
 		shift 2
 		;;
 	--exclude-mods | -e)
-		handle_exclude_mods_option "$2"
+		while IFS= read -r mp; do
+			module_paths+=("$mp")
+		done < <(filter_mods_exclude "$2")
 		shift 2
 		;;
 	--dst | -d)
@@ -128,16 +110,10 @@ while true; do
 	esac
 done
 
-set_module_paths_all() {
-	local mod_path
-	readarray -t modules_all <<<"$(cd "${CF_MODS_DIR}" && find ./* -maxdepth 0 -exec basename {} \;)"
-	for module in "${modules_all[@]}"; do
-		module_paths+=("${CF_MODS_DIR}/${module}")
-	done
-}
-
 if [ "${#module_paths[@]}" -eq 0 ]; then
-	set_module_paths_all
+	while IFS= read -r name; do
+		module_paths+=("${CF_MODS_DIR}/${name}")
+	done < <(list_all_mod_names)
 fi
 
 if [ -z "$DST_DIR" ]; then
@@ -164,63 +140,17 @@ fi
 # fuctions
 
 # shellcheck disable=SC2317
-print_rsync_output() {
-	local header_printed=false
-	[ "$OPT_DEBUG" = "true" ] && {
-		echo "$*"
-		header_printed=true
-	}
-	while IFS= read -r line || [ -n "$line" ]; do
-		[ "$header_printed" = "false" ] && {
-			header_printed=true
-			echo "$*"
-		}
-		echo "$line"
-	done
-}
-
-# shellcheck disable=SC2317
 cf_status() {
-	local mod_dir="$1"
-	local src_dir="$mod_dir/home"
-	local dst_dir="$2"
-	if ! [ -d "$src_dir" ]; then
-		return 1
-	fi
-	if [ -z "$dst_dir" ]; then
-		dst_dir="$HOME"
-	fi
-
-	if [ "$OPT_DRY_RUN" = "true" ]; then
-		echo "$DST_SSHPASS_CMD" rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/"
-	else
-		$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 -ni "${src_dir}/" "${dst_dir}/" |
-			print_rsync_output ">>> $src_dir -> $dst_dir"
-	fi
-
-	return "${PIPESTATUS[0]}"
+	local src_dir="$1/home"
+	local dst_dir="${2:-${HOME}}"
+	do_cf_rsync "$src_dir" "$dst_dir" "-ni"
 }
 
 # shellcheck disable=SC2317
 cf_apply() {
-	local mod_dir="$1"
-	local src_dir="$mod_dir/home"
-	local dst_dir="$2"
-	if ! [ -d "$src_dir" ]; then
-		return 1
-	fi
-	if [ -z "$dst_dir" ]; then
-		dst_dir="$HOME"
-	fi
-
-	if [ "$OPT_DRY_RUN" = "true" ]; then
-		echo "$DST_SSHPASS_CMD" rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/"
-	else
-		$DST_SSHPASS_CMD rsync -avzO --no-o --no-g --info=FLIST0,STATS0 "${src_dir}/" "${dst_dir}/" |
-			print_rsync_output ">>> $src_dir -> $dst_dir"
-	fi
-
-	return "${PIPESTATUS[0]}"
+	local src_dir="$1/home"
+	local dst_dir="${2:-${HOME}}"
+	do_cf_rsync "$src_dir" "$dst_dir"
 }
 
 # $0 <handler> <mod_platform_dir>
