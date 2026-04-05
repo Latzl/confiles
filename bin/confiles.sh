@@ -196,8 +196,7 @@ cf_diff_main() {
 
 	[ ${#all_files[@]} -eq 0 ] && echo "No content differences." && return 0
 
-	# if command -v fzf &>/dev/null; then
-	if false; then
+	if command -v fzf &>/dev/null; then
 		while true; do
 			local selected
 			# shellcheck disable=SC2016
