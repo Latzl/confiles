@@ -37,7 +37,8 @@ if ($opt_help) {
 }
 
 my $path = $ENV{PATH} // '';
-my @dirs = split /:/, $path;
+my %dir_seen;
+my @dirs = grep { !$dir_seen{$_}++ } split /:/, $path;
 
 my $dir_q = Thread::Queue->new(@dirs);
 my $out_q = Thread::Queue->new();

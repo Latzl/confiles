@@ -1,0 +1,21 @@
+#!/usr/bin/env perl
+
+use strict;
+use warnings;
+
+sub usage {
+    my $prog = $0;
+    return <<"USAGE";
+Usage: $prog
+List binary files, fuzzy search file name, and execute the file name selected.
+USAGE
+}
+
+my $selected = qx(mts-bin-get);
+
+if ( !$selected ) {
+    exit 0;
+}
+
+system($selected) == 0
+  or warn "Failed to execute '$selected'\n";

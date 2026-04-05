@@ -46,12 +46,6 @@ _mts_bind_res_cd_dir() {
     echo "now on $(pwd)"
 }
 
-_mts_bind_bin_open() {
-    local selected
-    selected="$(mts-bin-get)"
-    $selected
-}
-
 # open bin and insert output to current line
 _mts_bind_bin_open_insert() {
     local selected
@@ -67,5 +61,5 @@ bind -x '"\earf":_mts_bind_res_get'
 bind -x '"\ear\C-f":mts-res-open'
 bind -x '"\eard":_mts_bind_res_get_dir'
 bind '"\ear\C-d": "\C-ex\C-u _mts_bind_res_cd_dir\C-m\C-y\C-b\C-d"'
-bind -x '"\eab ":_mts_bind_bin_open'
+bind -x '"\eab ":mts-bin-exec'
 bind -x '"\eabi":_mts_bind_bin_open_insert'
