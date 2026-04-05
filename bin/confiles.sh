@@ -12,7 +12,8 @@ Usage: $this_sh {ACTION} [--debug] [--help|-h] [[--mods|-m]|[--exclude-mods|-e]]
 ACTION:
 	status		show difference between src and dst
 	apply		sync files to dst
-	src_check	check if src contain duplicate files 
+	diff		interactively review differences with fzf and open with vimdiff; falls back to diff if fzf not found
+	src_check	check if src contain duplicate files
 	remove		remove confiles
 
 OPTIONS:
@@ -29,6 +30,8 @@ The option dst_dir can be remote directory with format follow rsync's. If dst_di
 Examples:
 	# show difference between src and dst
 	$this_sh status
+	# interactively review and edit differences
+	$this_sh diff
 	# sync files to ~/
 	$this_sh apply
 	# show status as dst dir is /home/user, with specify mods mod1 and mod2
@@ -151,6 +154,100 @@ cf_apply() {
 	local src_dir="$1/home"
 	local dst_dir="${2:-${HOME}}"
 	do_cf_rsync "$src_dir" "$dst_dir"
+}
+
+# $1: mod_dir
+# Emits: "mod_name|src_path|resolved_dst_path|rel_path|attrs"
+# shellcheck disable=SC2317
+cf_diff() {
+	local mod_dir="$1"
+	local src_dir="${mod_dir}/home"
+	local dst_dir="${DST_DIR}"
+	local mod_name
+	mod_name="$(basename "$mod_dir")"
+
+	while IFS= read -r line; do
+		local attrs rel_path
+		attrs=$(echo "$line" | awk '{print $1}')
+		rel_path=$(echo "$line" | awk '{print $2}')
+
+		[[ "${#attrs}" != 11 ]] && continue
+		[ -z "$rel_path" ] && continue
+
+		rel_path="${rel_path#home/}"
+
+		local src_path="${src_dir}/${rel_path}"
+		local dst_path="${dst_dir}/${rel_path}"
+		local resolved_dst
+		if [ -e "$dst_path" ]; then
+			resolved_dst="$(realpath "$dst_path" 2>/dev/null)"
+		else
+			# new file: destination does not exist yet
+			resolved_dst="/dev/null"
+		fi
+		[ -z "$resolved_dst" ] && resolved_dst="$src_path"
+
+		echo "${mod_name}|${src_path}|${resolved_dst}|${rel_path}|${attrs}"
+	done < <(cf_status "$mod_dir" "$dst_dir")
+}
+
+cf_diff_main() {
+	mapfile -t all_files < <(for_each_src_to_dst_mods_handle cf_diff)
+
+	[ ${#all_files[@]} -eq 0 ] && echo "No content differences." && return 0
+
+	# if command -v fzf &>/dev/null; then
+	if false; then
+		while true; do
+			local selected
+			# shellcheck disable=SC2016
+			selected=$(printf '%s\n' "${all_files[@]}" | \
+				awk -F'|' '{print $(NF-1) "\t" $0}' | \
+				fzf --prompt "> diff > " \
+					--with-nth='1' \
+					--preview-window='right:60%,wrap' \
+					--preview='
+orig=$(echo {} | cut -f2-)
+mod=$(echo "$orig" | cut -d"|" -f1)
+src=$(echo "$orig" | cut -d"|" -f2)
+dst=$(echo "$orig" | cut -d"|" -f3)
+attrs=$(echo "$orig" | cut -d"|" -f5)
+echo "mod: $mod"
+echo "attrs: $attrs"
+echo "src path: $src"
+echo "dst path: $dst"
+echo ""
+echo "diff:"
+diff -u "$src" "$dst" 2>/dev/null || {
+[ ! -e "$src" ] && echo "(src missing)"
+[ ! -e "$dst" ] && echo "(dst missing)"
+}
+					')
+			[ -z "$selected" ] && break
+
+			# extract original full line and show vimdiff
+			local orig_line
+			orig_line=$(printf '%s' "$selected" | cut -f2-)
+			local src_path dst_path
+			IFS="|" read -r _ src_path dst_path _ <<< "$orig_line"
+			vimdiff "$src_path" "$dst_path"
+
+			# remove from array (compare original full lines)
+			local new_files=()
+			for f in "${all_files[@]}"; do
+				[ "$f" != "$orig_line" ] && new_files+=("$f")
+			done
+			all_files=("${new_files[@]}")
+			[ ${#all_files[@]} -eq 0 ] && break
+		done
+	else
+		for f in "${all_files[@]}"; do
+			local mod_name src_path dst_path rel_path
+			IFS="|" read -r mod_name src_path dst_path rel_path _ <<< "$f"
+			echo "=== [${mod_name}] ${rel_path}"
+			diff -u "$src_path" "$dst_path"
+		done
+	fi
 }
 
 # $0 <handler> <mod_platform_dir>
@@ -335,6 +432,9 @@ remove_all() {
 case "$1" in
 status)
 	status_all
+	;;
+diff)
+	cf_diff_main
 	;;
 apply)
 	apply_all

@@ -18,7 +18,8 @@ do_cf_rsync() {
 	if [ "$OPT_DRY_RUN" = "true" ]; then
 		echo "$rsync_cmd ${src_dir}/ ${dst_dir}/"
 	else
-		$rsync_cmd "$src_dir/" "$dst_dir/" | print_rsync_output ">>> $src_dir -> $dst_dir"
+		# Filter out t-only changes (file, size unchanged, time changed) using Perl
+		$rsync_cmd "$src_dir/" "$dst_dir/" | perl -ne "print unless /^.f\.\.t\.\.\.\./" | print_rsync_output ">>> $src_dir -> $dst_dir"
 		return "${PIPESTATUS[0]}"
 	fi
 }
