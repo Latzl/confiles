@@ -1,65 +1,97 @@
 #!/bin/bash
 
-# open file of current edit line showing with mst-open
-_mts_bind_open_current_line() {
-    local line="$READLINE_LINE"
+# =============================================================================
+# mts-bind — metasys key bindings
+# prefix: M-z (Alt+z)
+#
+# Layer/action matrix:
+#   {prefix}{layer}[{sublayer}]{action}
+#
+# Layers:
+#   b   binary
+#   r   resource
+#     f   file
+#     d   directory
+#
+# Actions (Ctrl-prefixed):
+#   C-e  execute
+#   C-i  insert selected path / output to cmdline
+#   C-o  open
+#   C-g  cd to directory
+# =============================================================================
 
-    # trim
-    line="${line%"${line##*[![:space:]]}"}"
-    line="${line#"${line%%[![:space:]]*}"}"
+# -----------------------------------------------------------------------------
+# Layer functions — combine helpers with mts-* commands
+# -----------------------------------------------------------------------------
 
-    if [[ -f "$line" || -d "$line" ]]; then
-        mts-open "$line"
-    else
-        echo "file not exist $line" >&2
-    fi
-}
-
-_mts_bind_res_get() {
+# insert selected resource FILE path at cursor
+_mts_bind_res_file_insert() {
     local selected
-    selected="$(mts-res-get --print0 | xargs -0)"
+    selected="$(mts-res-get -f --print0 | xargs -0)"
+    [ -z "$selected" ] && return
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$((READLINE_POINT + ${#selected}))
 }
 
-_mts_bind_res_get_dir() {
+# insert selected resource DIR path at cursor
+_mts_bind_res_dir_insert() {
     local selected
     selected="$(mts-res-get -d --print0 | xargs -0)"
+    [ -z "$selected" ] && return
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$((READLINE_POINT + ${#selected}))
 }
-_mts_bind_res_cd_dir() {
+
+# cd to selected resource DIR
+_mts_bind_res_dir_cd() {
     local selected
     selected="$(mts-res-get -d --print0 | xargs -0)"
-    [ -z "$selected" ] && {
-        echo "no selected $selected"
-        return 1
-    }
-    [ ! -d "$selected" ] && {
-        echo "no a dir: $selected"
-        return 1
-    }
-    cd "$selected" || {
-        echo "cd $selected failed"
-        return 1
-    }
+    [ -z "$selected" ] && { echo "no selected" >&2; return 1; }
+    [ ! -d "$selected" ] && { echo "not a dir: $selected" >&2; return 1; }
+    cd "$selected" || { echo "cd $selected failed" >&2; return 1; }
     echo "now on $(pwd)"
 }
 
-# open bin and insert output to current line
-_mts_bind_bin_open_insert() {
+# insert selected binary PATH at cursor
+_mts_bind_bin_insert() {
     local selected
     selected="$(mts-bin-get)"
-    local output
-    output="$($selected)"
+    [ -z "$selected" ] && return
+    READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$selected${READLINE_LINE:$READLINE_POINT}"
+    READLINE_POINT=$((READLINE_POINT + ${#selected}))
+}
+
+# execute selected binary and insert its stdout output at cursor
+_mts_bind_bin_exec_insert() {
+    local exe="$1"
+    local selected output
+    if [ -z "$exe" ]; then
+        selected="$(mts-bin-get)"
+    else
+        selected="$exe"
+    fi
+    [ -z "$selected" ] && return
+    output="$($selected 2>&1)"
     READLINE_LINE="${READLINE_LINE:0:$READLINE_POINT}$output${READLINE_LINE:$READLINE_POINT}"
     READLINE_POINT=$((READLINE_POINT + ${#output}))
 }
 
-bind -x '"\eaf":_mts_bind_open_current_line'
-bind -x '"\earf":_mts_bind_res_get'
-bind -x '"\ear\C-f":mts-res-open'
-bind -x '"\eard":_mts_bind_res_get_dir'
-bind '"\ear\C-d": "\C-ex\C-u _mts_bind_res_cd_dir\C-m\C-y\C-b\C-d"'
-bind -x '"\eab ":mts-bin-exec'
-bind -x '"\eabi":_mts_bind_bin_open_insert'
+# -----------------------------------------------------------------------------
+# M-z prefix 
+# -----------------------------------------------------------------------------
+# binary layer
+bind -x $'"\ezb\C-e":mts-bin-exec'
+bind -x $'"\ezb\C-i":_mts_bind_bin_insert'
+bind -x $'"\ezbe\C-i":_mts_bind_bin_exec_insert'
+
+# resource file layer
+bind -x $'"\ezrf\C-o":mts-res-open'
+bind -x $'"\ezrf\C-i":_mts_bind_res_file_insert'
+
+# resource directory layer
+bind -x $'"\ezrd\C-g":_mts_bind_res_dir_cd'
+bind -x $'"\ezrd\C-i":_mts_bind_res_dir_insert'
+
+# misc
+# insert env
+bind -x $'"\ezme":_mts_bind_bin_exec_insert "select-environment.bash"'
