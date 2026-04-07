@@ -50,5 +50,6 @@
         "repo": "affaan-m/everything-claude-code"
       }
     }
-  }
+  },
+  "autoDreamEnabled": true
 }

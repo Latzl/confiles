@@ -68,8 +68,20 @@ Edit fails
   │
   ├─ "Ambiguous" → Make old_string longer/more unique
   │
+  ├─ repr() verified but still can't match old_string → Use Write to replace the whole file
+  │
   └─ Unsolvable (binary file, huge file) → Ask user to make the change manually
 ```
+
+## When to Give Up on Edit and Use Write
+
+If you have **correctly diagnosed the exact file content** (via `repr()`) and `old_string` **still doesn't match** — the issue is that the target change is too complex or fragile for Edit. Switch to `Write`:
+
+- If Edit fails more than 2 times, switch to Write
+- If you need to modify more than 5 consecutive lines, prefer Write
+- If whitespace (tab/space mixing, cross-line indentation) cannot be precisely reproduced, use Write
+
+**Never loop back to Edit after deciding to use Write.** If Write is the right tool, use it.
 
 ## Key Principle
 
