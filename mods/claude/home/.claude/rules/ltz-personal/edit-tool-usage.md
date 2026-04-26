@@ -35,4 +35,4 @@ The `Edit` tool is strict: `old_string` must match the file **exactly** — char
 
 ## When Edit Fails Repeatedly
 
-See skill: **ltz-edit-tool-troubleshooting**
+See skill: **ltz-edit-tool-troubleshooting** (`~/.claude/skills/ltz-edit-tool-troubleshooting/SKILL.md`)
